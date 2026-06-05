@@ -51,11 +51,20 @@ npm run build
 
 ## Deploy (MYCODAO VM 198)
 
+**Deployed Jun 05, 2026** — commits `3888779`, `60b296b`, `bf434ee` on `MycosoftLabs/MYCODAO` `main`.
+
 ```powershell
-.\scripts\deploy-pulse-vm.ps1
+.\scripts\deploy-pulse-vm.ps1 -PrivateKeyOpenSSH "$env:USERPROFILE\.ssh\mycodao_pulse_ed25519"
 ```
 
-Live: `https://pulse.mycodao.com/pulse` and `https://pulse.mycodao.com/api/health`
+Live verification:
+
+| URL | Result |
+|-----|--------|
+| `https://pulse.mycodao.com/api/health` | `ok: true` |
+| `https://pulse.mycodao.com/api/tickers` | 20 tickers |
+| `https://pulse.mycodao.com/api/pulse/config-status` | shows unset keys (news/RSS/Streamlabs) |
+| `https://pulse.mycodao.com/pulse` | HTTP 200 SPA |
 
 ## Known gaps
 
