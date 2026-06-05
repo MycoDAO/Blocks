@@ -7,7 +7,8 @@ RUN npm ci --ignore-scripts
 FROM node:20-alpine AS pulse_deps
 WORKDIR /app/myco-pulse
 COPY myco-pulse/package.json myco-pulse/package-lock.json ./
-RUN npm ci --ignore-scripts
+# npm ci fails on Alpine when lock omits Linux-only optional deps (e.g. utf-8-validate)
+RUN npm install --ignore-scripts --no-audit --no-fund
 
 FROM node:20-alpine AS builder
 WORKDIR /app
