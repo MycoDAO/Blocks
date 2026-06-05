@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev -p 3004",
     "dev:fresh": "npm run clean && next dev -p 3004",
-    "build": "next build",
+    "dev:pulse": "npm run build:pulse && next dev -p 3004",
+    "build:pulse": "cd myco-pulse && npm ci --ignore-scripts && npm run build",
+    "build": "npm run build:pulse && next build",
     "start": "next start -p 3004",
     "clean": "rimraf .next node_modules/.cache",
     "clean:build": "npm run clean && npm run build",

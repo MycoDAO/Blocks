@@ -12,6 +12,12 @@ const nextConfig = {
   /** Empty for `https://pulse.mycodao.com/` at root. Set NEXT_PUBLIC_BASE_PATH only if serving under a subpath. */
   basePath,
   output: "standalone",
+  async rewrites() {
+    return [
+      { source: "/pulse", destination: "/pulse/index.html" },
+      { source: "/pulse/", destination: "/pulse/index.html" },
+    ];
+  },
 };
 
 export default nextConfig;

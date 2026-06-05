@@ -17,7 +17,9 @@ Production hostname: **pulse.mycodao.com** — deploy: `docs/PULSE_MYCODAO_COM_D
 
 ## Scripts
 
-- `npm run dev` — Start dev server (port 3004)
+- `npm run dev` — Start dev server (port 3004); run `npm run build:pulse` first if `/pulse` 404s
+- `npm run dev:pulse` — Build AI Studio Pulse then start dev server
+- `npm run build:pulse` — Build `myco-pulse/` (Vite) into `public/pulse/` for `/pulse`
 - `npm run dev:fresh` — Delete `.next` (and `node_modules/.cache`) then dev — use after branch switches or **`Cannot find module './NNN.js'`** chunk errors
 - `npm run build` — Production build
 - `npm run start` — Start production server (port 3004)
@@ -38,8 +40,9 @@ Production hostname: **pulse.mycodao.com** — deploy: `docs/PULSE_MYCODAO_COM_D
 
 ## Structure
 
-- `app/` — Next.js App Router (layout, page)
-- `components/` — React components
+- `myco-pulse/` — **AI Studio Pulse dashboard** (Vite SPA; builds to `public/pulse/`)
+- `app/` — Next.js App Router (home, token, API routes; `/pulse` is static SPA + rewrite)
+- `components/` — React components (legacy `components/pulse/` retained until live-data wiring)
 - `lib/` — Utilities and helpers
 - `public/` — Static assets
 - `content/` — Content (markdown, etc.)

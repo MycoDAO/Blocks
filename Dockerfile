@@ -2,12 +2,18 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm ci --ignore-scripts
+
+FROM node:20-alpine AS pulse_deps
+WORKDIR /app/myco-pulse
+COPY myco-pulse/package.json myco-pulse/package-lock.json ./
+RUN npm ci --ignore-scripts
 
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+COPY --from=pulse_deps /app/myco-pulse/node_modules ./myco-pulse/node_modules
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
