@@ -33,11 +33,11 @@ export const PULSE_TABS: {
   shortLabel: string;
   icon: LucideIcon;
 }[] = [
+  { id: "News", label: "News", shortLabel: "News", icon: Globe },
   { id: "Pulse", label: "Pulse", shortLabel: "Pulse", icon: LayoutDashboard },
   { id: "DAO", label: "Organizations", shortLabel: "Orgs", icon: Users },
   { id: "Markets", label: "Markets", shortLabel: "Mkt", icon: TrendingUp },
   { id: "Trade", label: "Trade", shortLabel: "Trade", icon: BarChart3 },
-  { id: "News", label: "News", shortLabel: "News", icon: Globe },
   { id: "Podcasts", label: "Podcasts", shortLabel: "Pod", icon: Mic2 },
   { id: "FungIP", label: "FungIP", shortLabel: "FungIP", icon: Terminal },
   { id: "Learn", label: "Learn", shortLabel: "Learn", icon: BookOpen },
