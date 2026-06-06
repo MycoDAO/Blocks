@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 
 const BLOCKS_HOST = "blocks.mycodao.com";
 const LEGACY_PULSE_HOST = "pulse.mycodao.com";
-const APP_HOSTS = new Set([BLOCKS_HOST, LEGACY_PULSE_HOST]);
 
 export function middleware(request) {
   const host = request.headers.get("host")?.split(":")[0] ?? "";
@@ -17,7 +16,7 @@ export function middleware(request) {
   }
 
   // Live Blocks hostname: send / to the dashboard (Cloudflare Tunnel or direct).
-  if (APP_HOSTS.has(host) && request.nextUrl.pathname === "/") {
+  if (host === BLOCKS_HOST && request.nextUrl.pathname === "/") {
     const dest = new URL("/blocks/", request.url);
     dest.search = request.nextUrl.search;
     dest.hash = request.nextUrl.hash;
@@ -35,5 +34,10 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/", "/mycodao.financial", "/mycodao.financial/:path*"],
+  matcher: [
+    "/",
+    "/((?!_next/static|_next/image|favicon.ico).*)",
+    "/mycodao.financial",
+    "/mycodao.financial/:path*",
+  ],
 };
