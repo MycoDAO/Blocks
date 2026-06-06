@@ -103,13 +103,25 @@ import type {
 import { fetchPulseConfigStatus } from './lib/pulseApi';
 import { formatGlobalMarketSessionSummary } from './lib/marketSessions';
 import { mergeTickerGroupsWithStudio } from './data/studioPresets';
+import { PulseBottomNav, PulseSidebarNav, type PulseTabId } from './components/PulseShellNav';
 
 // Handle RGL ESM/CJS interop
 const Grid = (RGL as any).default || RGL;
 const ResponsiveGridLayout = Grid.WidthProvider(Grid.Responsive);
 
-const initialLayouts = {
-  lg: [
+function stackGridLayout(
+  items: { i: string; w: number; h: number; x?: number; y?: number }[],
+  cols: number
+) {
+  let y = 0;
+  return items.map((item) => {
+    const next = { ...item, x: 0, w: cols, y };
+    y += item.h;
+    return next;
+  });
+}
+
+const lgLayout = [
     { i: 'overview', x: 0, y: 0, w: 4, h: 2 },
     { i: 'crypto', x: 4, y: 0, w: 3, h: 2 },
     { i: 'metals', x: 7, y: 0, w: 2, h: 2 },
@@ -136,7 +148,14 @@ const initialLayouts = {
 
     { i: 'whale_watch_mini', x: 0, y: 10, w: 6, h: 2 },
     { i: 'mindex_mini', x: 6, y: 10, w: 6, h: 2 },
-  ]
+];
+
+const initialLayouts = {
+  lg: lgLayout,
+  md: stackGridLayout(lgLayout, 6),
+  sm: stackGridLayout(lgLayout, 3),
+  xs: stackGridLayout(lgLayout, 1),
+  xxs: stackGridLayout(lgLayout, 1),
 };
 
 // --- TERMINAL COMPONENTS ---
@@ -180,21 +199,6 @@ const WidgetWrapper = ({ children, title, onToggleFull, isFull, id }: any) => (
       {children}
     </div>
   </div>
-);
-
-const NavItem = ({ icon: Icon, label, active, onClick }: any) => (
-  <button
-    onClick={onClick}
-    className={cn(
-      "w-full flex items-center gap-3 px-4 py-2 border-l-2 transition-all group",
-      active 
-        ? "border-myco-accent bg-myco-accent/5 text-myco-accent font-bold" 
-        : "border-transparent text-dim hover:text-white hover:bg-white/5"
-    )}
-  >
-    <Icon className="w-4 h-4" />
-    <span className="text-xs uppercase tracking-widest leading-none">{label}</span>
-  </button>
 );
 
 function formatNewsAge(iso?: string): string {
@@ -468,7 +472,7 @@ const PulseDashboard = ({
           <div className="h-full bg-white/40 animate-[loading_1s_infinite]" style={{ width: '40%' }} />
         </div>
       )}
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-24">
+      <div className="flex-1 overflow-y-auto no-scrollbar pb-6 lg:pb-24 min-h-0">
         <ResponsiveGridLayout
           className="layout"
           layouts={layouts}
@@ -855,14 +859,15 @@ const MarketView = ({ assets = [] }: any) => {
   const filteredAssets = filter === 'ALL' ? assets : assets.filter((a: any) => a.type === filter);
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden p-6 bg-[#050505]">
-      <div className="flex gap-4 mb-6 shrink-0 h-10 overflow-x-auto no-scrollbar pb-2">
+    <div className="flex-1 flex flex-col overflow-hidden p-3 md:p-4 lg:p-6 bg-[#050505] min-h-0">
+      <div className="flex gap-2 md:gap-3 mb-4 shrink-0 overflow-x-auto no-scrollbar pb-1">
         {['ALL', 'SOL', 'BTC', 'DESCI', 'MYCO', 'XSTOCK', 'DEFI'].map(t => (
           <button 
             key={t} 
+            type="button"
             onClick={() => setFilter(t)}
             className={cn(
-              "px-6 glass-bento text-[10px] font-bold tracking-widest uppercase transition-all",
+              "px-3 md:px-5 min-h-[44px] shrink-0 glass-bento text-[10px] font-bold tracking-widest uppercase transition-all touch-manipulation",
               filter === t ? "bg-myco-accent text-black border-myco-accent" : "hover:bg-myco-accent hover:text-black hover:border-myco-accent"
             )}
           >
@@ -870,13 +875,13 @@ const MarketView = ({ assets = [] }: any) => {
           </button>
         ))}
       </div>
-      <div className="flex-1 glass-bento p-0 overflow-hidden flex flex-col border-white/5">
-        <div className="grid grid-cols-12 p-4 border-b border-white/10 text-[10px] font-bold uppercase tracking-widest opacity-50 bg-black/40">
-          <span className="col-span-3">Instrument</span>
+      <div className="flex-1 glass-bento p-0 overflow-hidden flex flex-col border-white/5 min-h-0">
+        <div className="hidden md:grid grid-cols-12 p-3 md:p-4 border-b border-white/10 text-[10px] font-bold uppercase tracking-widest opacity-50 bg-black/40">
+          <span className="col-span-4 lg:col-span-3">Instrument</span>
           <span className="col-span-2 text-right">Price</span>
-          <span className="col-span-2 text-right">24H Delta</span>
-          <span className="col-span-2 text-right">Market Cap</span>
-          <span className="col-span-3 text-right">Volume Stream</span>
+          <span className="col-span-2 text-right">24H</span>
+          <span className="hidden lg:block col-span-2 text-right">Market Cap</span>
+          <span className="col-span-4 lg:col-span-3 text-right">Volume</span>
         </div>
         <div className="flex-1 overflow-y-auto no-scrollbar">
           {filteredAssets.length === 0 && (
@@ -887,32 +892,45 @@ const MarketView = ({ assets = [] }: any) => {
           {filteredAssets.map((a, i) => (
             <div key={i} className="flex flex-col border-b border-white/5 group">
               <div 
+                role="button"
+                tabIndex={0}
                 onClick={() => setExpandedAsset(expandedAsset === a.symbol ? null : a.symbol)}
-                className="grid grid-cols-12 p-4 hover:bg-white/[0.02] transition-colors items-center cursor-pointer"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setExpandedAsset(expandedAsset === a.symbol ? null : a.symbol);
+                  }
+                }}
+                className="grid grid-cols-12 p-3 md:p-4 hover:bg-white/[0.02] transition-colors items-center cursor-pointer gap-2"
               >
-                <div className="col-span-3 flex items-center gap-3">
-                  <div className="size-8 glass-bento flex items-center justify-center p-2 bg-white/[0.03]">
+                <div className="col-span-12 md:col-span-4 lg:col-span-3 flex items-center gap-3 min-w-0">
+                  <div className="size-8 glass-bento flex items-center justify-center p-2 bg-white/[0.03] shrink-0">
                     <IconBySymbol symbol={a.symbol} />
                   </div>
-                  <div className="flex flex-col">
-                    <span className="font-bold tracking-tight text-white mb-0.5">{a.symbol}</span>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-bold tracking-tight text-white mb-0.5 truncate">{a.symbol}</span>
                     <span className="text-[8px] font-bold text-dim uppercase tracking-widest">{a.type}</span>
                   </div>
+                  <div className="ml-auto flex items-center gap-3 md:hidden">
+                    <span className="font-mono font-medium text-sm text-white/90">{a.price}</span>
+                    <span className={cn("font-bold text-xs", a.up ? "text-myco-accent" : "text-red-500")}>{a.change}</span>
+                    <ChevronRight className={cn("size-4 text-dim transition-transform shrink-0", expandedAsset === a.symbol ? "rotate-90" : "")} />
+                  </div>
                 </div>
-                <span className="col-span-2 text-right font-mono font-medium text-sm text-white/90">{a.price}</span>
-                <span className={cn("col-span-2 text-right font-bold text-xs", a.up ? "text-myco-accent" : "text-red-500")}>
+                <span className="hidden md:block col-span-2 text-right font-mono font-medium text-sm text-white/90">{a.price}</span>
+                <span className={cn("hidden md:block col-span-2 text-right font-bold text-xs", a.up ? "text-myco-accent" : "text-red-500")}>
                   {a.change}
                 </span>
-                <span className="col-span-2 text-right text-[10px] font-mono text-dim tracking-tighter">{a.mcap}</span>
-                <div className="col-span-3 flex justify-end items-center gap-4">
-                  <div className="h-8 w-24">
+                <span className="hidden lg:block col-span-2 text-right text-[10px] font-mono text-dim tracking-tighter">{a.mcap}</span>
+                <div className="hidden md:flex col-span-4 lg:col-span-3 justify-end items-center gap-2 lg:gap-4">
+                  <div className="h-8 w-16 lg:w-24 shrink-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={EMPTY_CHART_DATA}>
                         <Area type="monotone" dataKey="value" stroke={a.up ? "#00ff88" : "#ef4444"} fillOpacity={1} fill={a.up ? "rgba(0,255,136,0.05)" : "rgba(239,68,68,0.05)"} strokeWidth={1.5} />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
-                  <ChevronRight className={cn("size-4 text-dim transition-transform", expandedAsset === a.symbol ? "rotate-90" : "")} />
+                  <ChevronRight className={cn("size-4 text-dim transition-transform shrink-0", expandedAsset === a.symbol ? "rotate-90" : "")} />
                 </div>
               </div>
               
@@ -1023,14 +1041,14 @@ const TradeView = ({ prices, chartData, whales }: any) => {
   }, []);
 
   return (
-    <div className="flex-1 p-6 overflow-hidden flex flex-col bg-[#050505] gap-8">
-      <div className="max-w-[1700px] mx-auto w-full flex justify-between items-center shrink-0">
+    <div className="flex-1 p-3 md:p-4 lg:p-6 overflow-hidden flex flex-col bg-[#050505] gap-4 md:gap-8 min-h-0">
+      <div className="max-w-[1700px] mx-auto w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shrink-0">
          <div className="flex flex-col">
             <div className="flex items-center gap-3">
                <div className="size-4 bg-myco-accent border border-myco-accent/20 flex items-center justify-center p-0.5">
                   <Terminal className="text-black size-full" />
                </div>
-               <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Market Terminal</h1>
+               <h1 className="text-xl md:text-3xl font-black text-white uppercase tracking-tighter">Market Terminal</h1>
             </div>
             <div className="flex items-center gap-2 mt-1">
                <div className="size-1.5 bg-myco-accent rounded-full animate-pulse shadow-[0_0_8px_rgba(30,255,188,0.5)]" />
@@ -1040,7 +1058,7 @@ const TradeView = ({ prices, chartData, whales }: any) => {
          <WalletDisplay />
       </div>
 
-      <div className="flex-1 grid grid-cols-12 gap-8 max-w-[1700px] mx-auto w-full overflow-hidden pb-8">
+      <div className="flex-1 grid grid-cols-12 gap-4 md:gap-8 max-w-[1700px] mx-auto w-full overflow-y-auto no-scrollbar min-h-0 pb-4 md:pb-8">
         {/* Left: Execution Hub */}
         <div className="col-span-12 xl:col-span-4 flex flex-col h-full space-y-6 overflow-hidden">
           <div className="h-[65%] glass-bento overflow-hidden border-myco-accent/20 bg-myco-accent/[0.01]">
@@ -1159,10 +1177,10 @@ const PodcastView = ({
   }, [episodesProp.length]);
 
   return (
-  <div className="flex-1 flex flex-col p-6 gap-6 h-screen overflow-hidden bg-[#050505]">
-    <div className="flex-1 grid grid-cols-12 gap-6 relative">
+  <div className="flex-1 flex flex-col p-3 md:p-4 lg:p-6 gap-4 md:gap-6 min-h-0 overflow-hidden bg-[#050505]">
+    <div className="flex-1 grid grid-cols-12 gap-4 md:gap-6 relative min-h-0 overflow-y-auto no-scrollbar">
       {/* Streamlabs Overlay System */}
-      <div className="absolute top-10 left-10 z-50 pointer-events-none group flex flex-col gap-4">
+      <div className="hidden md:flex absolute top-6 left-6 z-50 pointer-events-none group flex-col gap-4">
          <motion.div 
            initial={{ opacity: 0, x: -20 }}
            animate={{ opacity: 1, x: 0 }}
@@ -1191,7 +1209,7 @@ const PodcastView = ({
          </div>
       </div>
 
-      <div className="col-span-8 glass-bento relative flex flex-col overflow-hidden border-white/5">
+      <div className="col-span-12 lg:col-span-8 glass-bento relative flex flex-col overflow-hidden border-white/5 min-h-[280px] lg:min-h-0">
         <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent pointer-events-none z-10" />
         {episodes[0]?.image ? (
           <img
@@ -1201,7 +1219,7 @@ const PodcastView = ({
             referrerPolicy="no-referrer"
           />
         ) : null}
-        <div className="relative z-20 flex-1 p-8 flex flex-col justify-end">
+        <div className="relative z-20 flex-1 p-4 md:p-6 lg:p-8 flex flex-col justify-end">
            {/* RSS Status */}
            <div className="flex items-center gap-3 mb-4">
             <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FF5C39] text-white text-[10px] font-black uppercase tracking-tighter">
@@ -1219,13 +1237,13 @@ const PodcastView = ({
             </span>
             <span className="text-xs font-bold uppercase tracking-widest text-white/60 line-clamp-1">{episodes[0] ? episodes[0].title : 'Loading Latest Episode...'}</span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-black tracking-tighter mb-4 text-white leading-none line-clamp-2">
+          <h1 className="text-2xl sm:text-4xl lg:text-6xl font-black tracking-tighter mb-4 text-white leading-none line-clamp-2">
             {episodes[0]?.show?.toUpperCase() || 'CRYPTO PODCASTS'}
           </h1>
           
-          <div className="flex items-center gap-6 mt-8">
-            <button className="flex items-center gap-3 px-10 py-5 bg-myco-accent text-black font-black uppercase tracking-widest text-sm hover:translate-y-[-2px] transition-all shadow-[0_5px_15px_rgba(0,255,136,0.3)]">
-              <Play className="w-6 h-6 fill-black" /> JOIN LIVE HUB
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-6 mt-6 md:mt-8">
+            <button type="button" className="flex items-center justify-center gap-3 px-6 md:px-10 py-4 md:py-5 min-h-[44px] bg-myco-accent text-black font-black uppercase tracking-widest text-xs sm:text-sm hover:translate-y-[-2px] transition-all shadow-[0_5px_15px_rgba(0,255,136,0.3)] touch-manipulation">
+              <Play className="w-5 h-5 sm:w-6 sm:h-6 fill-black" /> JOIN LIVE HUB
             </button>
             <div className="flex flex-col gap-2">
                <div className="flex items-center gap-3 text-dim">
@@ -1239,7 +1257,7 @@ const PodcastView = ({
           </div>
         </div>
       </div>
-      <div className="col-span-4 flex flex-col gap-6 overflow-y-auto no-scrollbar pb-20">
+      <div className="col-span-12 lg:col-span-4 flex flex-col gap-4 md:gap-6 overflow-y-auto no-scrollbar pb-4 lg:pb-0 min-h-0">
         {/* Streamlabs Pro Tools */}
         <div className="glass-bento p-6 border-white/5 bg-black/40 flex flex-col gap-4">
            <div className="flex justify-between items-center border-b border-white/5 pb-2">
@@ -1555,14 +1573,14 @@ const FungIPView = () => {
   };
 
   return (
-    <div className="flex-1 grid grid-cols-12 gap-1 p-1 bg-[#050505] overflow-hidden">
+    <div className="flex-1 flex flex-col lg:grid lg:grid-cols-12 gap-1 p-1 bg-[#050505] overflow-hidden min-h-0">
       {/* Tools Sidebar */}
-      <div className="col-span-12 lg:col-span-2 glass-bento border-white/5 bg-black/40 flex flex-col p-4 z-10">
+      <div className="col-span-12 lg:col-span-2 glass-bento border-white/5 bg-black/40 flex flex-col p-3 md:p-4 z-10 shrink-0 lg:shrink lg:min-h-0">
          <div className="flex flex-col gap-1 mb-6 border-b border-myco-accent/20 pb-4">
             <h2 className="text-[10px] font-black text-myco-accent uppercase tracking-[0.3em]">FungIP Suite</h2>
             <span className="text-[8px] text-dim uppercase font-bold tracking-widest flex items-center gap-1"><div className="size-1 bg-green-500 rounded-full"/> Node: Connected</span>
          </div>
-         <div className="space-y-1">
+         <div className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-x-visible no-scrollbar lg:space-y-1">
             {[
               { id: 'INSCRIPTION', label: 'DNA Inscription', icon: Dna },
               { id: 'IPNFT', label: 'IP-NFT Minter', icon: Share2 },
@@ -1572,15 +1590,16 @@ const FungIPView = () => {
               { id: 'ANALYSIS', label: 'Spectra Scan', icon: Microscope },
             ].map(t => (
               <button 
-                key={t.id} 
+                key={t.id}
+                type="button"
                 onClick={() => setActiveTool(t.id)}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-4 text-[9px] font-black uppercase tracking-widest transition-all rounded-sm",
+                  "lg:w-full flex items-center gap-2 lg:gap-3 px-3 py-3 lg:py-4 min-h-[44px] shrink-0 text-[9px] font-black uppercase tracking-widest transition-all rounded-sm touch-manipulation",
                   activeTool === t.id ? "bg-myco-accent/10 border-l-2 border-myco-accent text-myco-accent" : "text-dim hover:text-white hover:bg-white/5 border-l-2 border-transparent"
                 )}
               >
                 <t.icon className="w-4 h-4 shrink-0" />
-                <span className="truncate">{t.label}</span>
+                <span className="truncate whitespace-nowrap">{t.label}</span>
               </button>
             ))}
          </div>
@@ -1593,12 +1612,12 @@ const FungIPView = () => {
       </div>
 
       {/* Primary Tool View */}
-      <div className="col-span-12 lg:col-span-10 grid grid-cols-12 gap-1 overflow-hidden">
-         <div className="col-span-12 lg:col-span-8 glass-bento bg-black/20 border-white/5 p-10 flex flex-col overflow-y-auto no-scrollbar">
+      <div className="col-span-12 lg:col-span-10 grid grid-cols-12 gap-1 overflow-hidden min-h-0 flex-1">
+         <div className="col-span-12 lg:col-span-8 glass-bento bg-black/20 border-white/5 p-4 md:p-6 lg:p-10 flex flex-col overflow-y-auto no-scrollbar min-h-0">
             <div className="max-w-4xl space-y-10">
                <div className="flex justify-between items-start border-b border-white/5 pb-8">
                   <div>
-                    <h3 className="text-4xl font-black tracking-tighter uppercase mb-2 text-white">
+                    <h3 className="text-2xl md:text-4xl font-black tracking-tighter uppercase mb-2 text-white">
                       {activeTool.replace('_', ' ')}
                     </h3>
                     <p className="text-sm text-dim leading-relaxed font-medium">
@@ -1662,11 +1681,11 @@ const LearnView = ({ learnModules = [] as PulseLearnModule[] }: { learnModules?:
   }
 
   return (
-    <div className="flex-1 flex overflow-hidden bg-[#050505]">
+    <div className="flex-1 flex flex-col lg:flex-row overflow-hidden bg-[#050505] min-h-0">
        {/* Sidebar Navigation */}
-       <div className="w-80 shrink-0 border-r border-white/5 bg-black/40 flex flex-col overflow-y-auto no-scrollbar">
-          <div className="p-8 border-b border-white/5">
-             <h2 className="text-xl font-bold tracking-tighter uppercase mb-2">Protocol Academy</h2>
+       <div className="w-full lg:w-80 shrink-0 border-b lg:border-b-0 lg:border-r border-white/5 bg-black/40 flex flex-col overflow-x-auto lg:overflow-x-visible lg:overflow-y-auto no-scrollbar max-h-[40vh] lg:max-h-none">
+          <div className="p-4 md:p-6 lg:p-8 border-b border-white/5 shrink-0">
+             <h2 className="text-lg md:text-xl font-bold tracking-tighter uppercase mb-2">Protocol Academy</h2>
              <p className="text-[10px] text-dim font-bold uppercase tracking-[0.2em]">Ascension through decentralized knowledge.</p>
           </div>
           <div className="flex-1 py-4">
@@ -1690,7 +1709,7 @@ const LearnView = ({ learnModules = [] as PulseLearnModule[] }: { learnModules?:
        </div>
 
        {/* Module Content */}
-       <div className="flex-1 overflow-y-auto no-scrollbar p-12 bg-black/20">
+       <div className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-8 lg:p-12 bg-black/20 min-h-0">
           <div className="max-w-4xl space-y-12">
              <div className="flex justify-between items-start">
                 <div className="space-y-4 max-w-2xl">
@@ -1698,7 +1717,7 @@ const LearnView = ({ learnModules = [] as PulseLearnModule[] }: { learnModules?:
                       <span className="px-2 py-0.5 bg-myco-accent/10 border border-myco-accent/20 text-[9px] font-bold text-myco-accent uppercase tracking-[0.2em]">{activeModule.level}</span>
                       <span className="text-dim text-[10px] uppercase font-bold tracking-widest">{activeModule.readingTimeMin} min read</span>
                    </div>
-                   <h1 className="text-5xl font-black tracking-tighter uppercase leading-none">{activeModule.title}</h1>
+                   <h1 className="text-2xl md:text-4xl lg:text-5xl font-black tracking-tighter uppercase leading-none">{activeModule.title}</h1>
                    <p className="text-lg text-dim leading-relaxed">{activeModule.summary}</p>
                 </div>
                 <div className="flex gap-2">
@@ -2000,7 +2019,7 @@ const IconBySymbol = ({ symbol }: { symbol: string }) => {
 // --- MAIN APP ---
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('Pulse');
+  const [activeTab, setActiveTab] = useState<PulseTabId>('Pulse');
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [aiInsight, setAiInsight] = useState<string>("SYNCHRONIZING MINDEX REALM PROPOSALS... [READY]");
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -2096,70 +2115,35 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-black relative text-white selection:bg-myco-accent/30 selection:text-white">
-      {/* Sidebar - Terminal Rail */}
-      <aside className="w-16 md:w-56 shrink-0 border-r border-white/5 flex flex-col transition-all duration-300 z-50 bg-[#050505]">
-        <div className="p-6 border-b border-white/5 flex items-center justify-center md:justify-start gap-4">
-          <div className="size-12 glass-bento flex items-center justify-center bg-myco-accent shadow-[0_0_20px_rgba(0,255,136,0.3)] shrink-0 overflow-hidden">
-             <img
-               src={mycodaoBlackLogo}
-               alt="MycoDAO"
-               className="h-full w-full object-contain scale-[1.28]"
-             />
-          </div>
-          <span className="hidden md:block text-xl font-black tracking-tighter leading-none">PULSE</span>
-        </div>
-        <div className="flex-1 py-8 flex flex-col">
-          <nav className="flex-1 space-y-1">
-            <NavItem icon={LayoutDashboard} label="Pulse" active={activeTab === 'Pulse'} onClick={() => setActiveTab('Pulse')} />
-            <NavItem icon={Users} label="Organizations" active={activeTab === 'DAO'} onClick={() => setActiveTab('DAO')} />
-            <NavItem icon={TrendingUp} label="Markets" active={activeTab === 'Markets'} onClick={() => setActiveTab('Markets')} />
-            <NavItem icon={BarChart3} label="Trade" active={activeTab === 'Trade'} onClick={() => setActiveTab('Trade')} />
-            <NavItem icon={Globe} label="News" active={activeTab === 'News'} onClick={() => setActiveTab('News')} />
-            <NavItem icon={Mic2} label="Podcasts" active={activeTab === 'Podcasts'} onClick={() => setActiveTab('Podcasts')} />
-            <NavItem icon={Terminal} label="FungIP" active={activeTab === 'FungIP'} onClick={() => setActiveTab('FungIP')} />
-            <NavItem icon={BookOpen} label="Learn" active={activeTab === 'Learn'} onClick={() => setActiveTab('Learn')} />
-            <NavItem icon={Coins} label="MYCO" active={activeTab === 'MYCO'} onClick={() => setActiveTab('MYCO')} />
-          </nav>
-          <div className="p-4 border-t border-white/5">
-            <NavItem icon={Settings} label="Settings" active={activeTab === 'Settings'} onClick={() => setActiveTab('Settings')} />
-          </div>
-        </div>
-        <div className="p-4 bg-white/[0.02] hidden md:block">
-           <div className="flex flex-col gap-2">
-             <div className="flex items-center gap-2">
-               <div className="size-1.5 rounded-full bg-myco-accent animate-pulse" />
-               <span className="text-[9px] font-bold text-dim uppercase tracking-widest">Oracle Sync</span>
-             </div>
-             <p className="text-[9px] font-mono leading-relaxed text-myco-accent/60 truncate">
-               {aiInsight}
-             </p>
-           </div>
-        </div>
-      </aside>
+    <div className="flex min-h-dvh h-dvh overflow-hidden bg-black relative text-white selection:bg-myco-accent/30 selection:text-white">
+      <PulseSidebarNav
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        aiInsight={aiInsight}
+      />
 
       {/* Main Matrix Container */}
-      <main className="flex-1 flex flex-col relative overflow-hidden bg-[#050505]">
+      <main className="flex-1 flex flex-col relative overflow-hidden bg-[#050505] min-w-0 pulse-content-pad">
         {/* Top Header Rail */}
-        <header className="h-16 shrink-0 border-b border-white/5 flex items-center justify-between px-6 bg-[#050505]/80 backdrop-blur-xl z-40">
-           <div className="flex items-center gap-10">
+        <header className="shrink-0 border-b border-white/5 flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 lg:px-6 py-2 min-h-14 bg-[#050505]/80 backdrop-blur-xl z-40">
+           <div className="flex items-center gap-3 sm:gap-6 min-w-0 flex-1">
               <button
                 type="button"
                 onClick={() => setActiveTab('News')}
                 className={cn(
-                  "flex items-center gap-3 text-left transition-opacity hover:opacity-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-myco-accent/60 rounded-sm",
+                  "flex items-center gap-2 sm:gap-3 text-left transition-opacity hover:opacity-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-myco-accent/60 rounded-sm min-h-[44px] shrink-0",
                   activeTab === 'News' ? "opacity-100" : "opacity-80 hover:opacity-95"
                 )}
                 aria-label="Open Block News Live"
                 aria-current={activeTab === 'News' ? 'page' : undefined}
               >
                  <div className="size-2 rounded-full bg-myco-accent shadow-[0_0_8px_var(--color-myco-accent)] shrink-0" />
-                 <span className="text-[10px] font-bold uppercase tracking-[0.4em]">
-                   Block News.{' '}
+                 <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] sm:tracking-[0.35em] whitespace-nowrap">
+                   <span className="hidden sm:inline">Block News. </span>
                    <span className="text-myco-accent opacity-100 animate-live-on-air">Live</span>
                  </span>
               </button>
-              <div className="hidden lg:flex items-center gap-8 border-l border-white/5 pl-8">
+              <div className="hidden xl:flex items-center gap-6 lg:gap-8 border-l border-white/5 pl-4 lg:pl-8 overflow-x-auto no-scrollbar">
                  <a
                    href={chainStats?.sources.bitcoin ?? "https://mempool.space/"}
                    target="_blank"
@@ -2200,30 +2184,32 @@ export default function App() {
               </div>
            </div>
 
-           <div className="flex items-center gap-6">
+           <div className="flex items-center gap-2 sm:gap-4 shrink-0">
               <a 
                 href="https://v2.realms.today/dao/At93fiCMzEkZWBAHxSNjfk7zUHnF3JcxyCyPjZELjK9Y/treasury"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center group"
+                className="hidden md:flex items-center group min-h-[44px]"
               >
-                 <span className="text-sm font-bold tracking-tighter group-hover:text-white">
-                   M Y C O D A O Treasury
+                 <span className="text-xs lg:text-sm font-bold tracking-tighter group-hover:text-white whitespace-nowrap">
+                   <span className="hidden lg:inline">M Y C O D A O </span>Treasury
                    <ExternalLink className="inline size-2.5 ml-1 opacity-40" />
                  </span>
               </a>
               
-              <button className="px-6 h-10 border border-myco-accent bg-myco-accent/10 text-myco-accent font-bold uppercase tracking-widest text-[10px] hover:bg-myco-accent hover:text-black transition-all">
-                Phantom Connected
+              <button type="button" className="px-3 sm:px-5 min-h-[44px] border border-myco-accent bg-myco-accent/10 text-myco-accent font-bold uppercase tracking-widest text-[9px] sm:text-[10px] hover:bg-myco-accent hover:text-black transition-all whitespace-nowrap touch-manipulation">
+                <span className="hidden sm:inline">Phantom </span>Connected
               </button>
 
-              <div className="flex gap-2 border-l border-white/5 pl-6">
-                 <button className="size-8 glass-bento flex items-center justify-center hover:bg-white/5 text-dim transition-all">
+              <div className="flex gap-1 sm:gap-2 border-l border-white/5 pl-2 sm:pl-4">
+                 <button type="button" aria-label="Security lock" className="size-10 min-w-[44px] min-h-[44px] glass-bento flex items-center justify-center hover:bg-white/5 text-dim transition-all touch-manipulation">
                    <Lock className="w-3.5 h-3.5" />
                  </button>
                  <button 
+                  type="button"
+                  aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
                   onClick={() => setIsDarkMode(!isDarkMode)}
-                  className="size-8 glass-bento flex items-center justify-center hover:bg-myco-accent hover:text-black hover:border-myco-accent transition-all"
+                  className="size-10 min-w-[44px] min-h-[44px] glass-bento flex items-center justify-center hover:bg-myco-accent hover:text-black hover:border-myco-accent transition-all touch-manipulation"
                  >
                    {isDarkMode ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
                  </button>
@@ -2232,24 +2218,28 @@ export default function App() {
                 href="https://mycodao.com"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center justify-center shrink-0 hover:opacity-90 transition-opacity"
+                className="hidden sm:flex items-center justify-center shrink-0 hover:opacity-90 transition-opacity min-h-[44px]"
                 aria-label="MycoDAO"
               >
                 <img
                   src={mycodaoColorLogo}
                   alt="MycoDAO"
-                  className="h-8 w-auto max-w-[108px] object-contain"
+                  className="h-7 lg:h-8 w-auto max-w-[96px] lg:max-w-[108px] object-contain"
                 />
               </a>
            </div>
         </header>
 
         {/* View Port */}
-        {renderContent()}
+        <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+          {renderContent()}
+        </div>
 
         {/* Global Feedback Elements */}
-        <div className="scanline" />
+        <div className="scanline pointer-events-none" />
       </main>
+
+      <PulseBottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
   );
 }

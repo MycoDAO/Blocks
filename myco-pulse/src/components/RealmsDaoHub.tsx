@@ -261,7 +261,7 @@ export function RealmsDaoHub() {
         activeDao={activeDao}
       />
 
-      <div className="flex flex-wrap gap-1 mb-4 shrink-0">
+      <div className="flex flex-nowrap gap-1 mb-4 shrink-0 overflow-x-auto no-scrollbar pb-1">
         {(
           [
             { id: "EXPLORE" as const, label: "Directory", icon: <Search className="size-3" /> },
@@ -275,7 +275,7 @@ export function RealmsDaoHub() {
             type="button"
             onClick={() => setTab(id)}
             className={cn(
-              "flex-1 min-w-[calc(50%-4px)] sm:min-w-0 sm:flex-none px-3 py-2.5 min-h-[44px] text-[9px] font-black uppercase tracking-widest border flex items-center justify-center gap-1.5 transition-all",
+              "flex-none min-w-[7.5rem] sm:min-w-[8.5rem] px-3 py-2.5 min-h-[44px] text-[9px] font-black uppercase tracking-widest border flex items-center justify-center gap-1.5 transition-all touch-manipulation shrink-0",
               tab === id
                 ? "bg-white/10 border-white/30 text-white"
                 : "bg-black border-white/5 text-dim hover:bg-white/5"
