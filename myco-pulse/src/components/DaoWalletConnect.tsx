@@ -62,7 +62,7 @@ export function DaoWalletConnect({ className }: { className?: string }) {
           <p className="mt-1">{wallet.phantomErrors.connect.message}</p>
           <p className="mt-2 text-dim">
             If this mentions Auth2 or 400: confirm Phantom Portal redirect URL is{" "}
-            <span className="font-mono text-red-100/90">{window.location.origin}</span> (no /pulse path).
+            <span className="font-mono text-red-100/90">{window.location.origin}</span> (no /blocks path).
           </p>
           <button
             type="button"

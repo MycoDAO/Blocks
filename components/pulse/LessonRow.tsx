@@ -10,7 +10,7 @@ type LessonRowProps = {
 export default function LessonRow({ module: m }: LessonRowProps) {
   return (
     <Link
-      href={`/pulse/learn/${m.id}`}
+      href={`/blocks/learn/${m.id}`}
       className="flex items-center gap-0.5 py-[1px] border-b border-neutral-800 last:border-0 hover:bg-stone-800/30 leading-tight tabular-nums"
     >
       <span className="text-xs text-stone-500 shrink-0 capitalize">{m.level}</span>

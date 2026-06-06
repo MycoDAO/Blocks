@@ -66,19 +66,16 @@ export function PulseNavItem({
         onClick={onClick}
         aria-current={active ? "page" : undefined}
         className={cn(
-          "flex flex-col items-center justify-center gap-0.5 min-w-[4.25rem] min-h-[44px] px-2 py-1.5 shrink-0 transition-all touch-manipulation",
-          active ? "text-myco-accent" : "text-dim hover:text-white"
+          "flex flex-col items-center justify-center gap-0.5 w-full aspect-square min-h-[44px] p-1 transition-all touch-manipulation rounded-none border-0",
+          active
+            ? "bg-myco-accent/10 text-myco-accent"
+            : "text-dim hover:text-white hover:bg-white/5"
         )}
       >
         <Icon className="size-4 shrink-0" aria-hidden />
-        <span className="text-[8px] font-bold uppercase tracking-wide leading-none max-w-[4rem] truncate">
+        <span className="text-[7px] sm:text-[8px] font-bold uppercase tracking-wide leading-none max-w-full truncate px-0.5">
           {label}
         </span>
-        {active ? (
-          <span className="size-1 rounded-full bg-myco-accent" aria-hidden />
-        ) : (
-          <span className="size-1" aria-hidden />
-        )}
       </button>
     );
   }
@@ -115,14 +112,14 @@ export function PulseSidebarNav({
   return (
     <aside className="hidden lg:flex w-56 shrink-0 border-r border-white/5 flex-col z-50 bg-[#050505]">
       <div className="p-4 border-b border-white/5 flex items-center gap-3">
-        <div className="size-10 glass-bento flex items-center justify-center bg-myco-accent shadow-[0_0_20px_rgba(0,255,136,0.3)] shrink-0 overflow-hidden">
+        <div className="size-10 glass-bento flex items-center justify-center bg-red-600 shadow-[0_0_20px_rgba(220,38,38,0.35)] shrink-0 overflow-hidden">
           <img
             src={mycodaoBlackLogo}
             alt="MycoDAO"
             className="h-full w-full object-contain scale-[1.28]"
           />
         </div>
-        <span className="text-lg font-black tracking-tighter leading-none">PULSE</span>
+        <span className="text-lg font-black tracking-tighter leading-none uppercase">BLOCKS</span>
       </div>
       <div className="flex-1 py-4 flex flex-col min-h-0">
         <nav className="flex-1 space-y-0.5 overflow-y-auto no-scrollbar">
@@ -145,22 +142,71 @@ export function PulseSidebarNav({
           />
         </div>
       </div>
-      {aiInsight ? (
-        <div className="p-4 bg-white/[0.02] shrink-0 border-t border-white/5">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <div className="size-1.5 rounded-full bg-myco-accent animate-pulse" />
-              <span className="text-[9px] font-bold text-dim uppercase tracking-widest">
-                Oracle Sync
-              </span>
-            </div>
-            <p className="text-[9px] font-mono leading-relaxed text-myco-accent/60 line-clamp-3">
-              {aiInsight}
-            </p>
+      <div className="p-4 bg-white/[0.02] shrink-0 border-t border-white/5">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <div className="size-1.5 rounded-full bg-myco-accent animate-pulse" />
+            <span className="text-[9px] font-bold text-dim uppercase tracking-widest">
+              Oracle Sync
+            </span>
           </div>
+          <p className="text-[9px] font-mono leading-relaxed text-myco-accent/60 line-clamp-3">
+            {aiInsight}
+          </p>
         </div>
-      ) : null}
+      </div>
     </aside>
+  );
+}
+
+/** BLOCKS + Pulse — flush square tiles on tablet/phone (no gap between). */
+export function PulseMobileBrandPair({
+  activeTab,
+  setActiveTab,
+}: Pick<PulseShellNavProps, "activeTab" | "setActiveTab">) {
+  return (
+    <div
+      className="lg:hidden flex items-stretch shrink-0 border border-white/10 divide-x divide-white/10 overflow-hidden"
+      aria-label="Blocks and Pulse"
+    >
+      <button
+        type="button"
+        onClick={() => setActiveTab("News")}
+        aria-label="BLOCKS — News"
+        aria-current={activeTab === "News" ? "page" : undefined}
+        className={cn(
+          "size-11 sm:size-12 flex flex-col items-center justify-center gap-0.5 touch-manipulation rounded-none transition-colors",
+          activeTab === "News"
+            ? "bg-white/10 text-white"
+            : "bg-[#050505] text-dim hover:text-white hover:bg-white/5"
+        )}
+      >
+        <div className="size-7 sm:size-8 flex items-center justify-center bg-red-600 shadow-[0_0_12px_rgba(220,38,38,0.35)] shrink-0 overflow-hidden">
+          <img
+            src={mycodaoBlackLogo}
+            alt=""
+            aria-hidden
+            className="h-full w-full object-contain scale-[1.28]"
+          />
+        </div>
+        <span className="text-[7px] font-black uppercase tracking-tighter leading-none">BLOCKS</span>
+      </button>
+      <button
+        type="button"
+        onClick={() => setActiveTab("Pulse")}
+        aria-label="Pulse dashboard"
+        aria-current={activeTab === "Pulse" ? "page" : undefined}
+        className={cn(
+          "size-11 sm:size-12 flex flex-col items-center justify-center gap-0.5 touch-manipulation rounded-none transition-colors",
+          activeTab === "Pulse"
+            ? "bg-myco-accent/10 text-myco-accent"
+            : "bg-[#050505] text-dim hover:text-white hover:bg-white/5"
+        )}
+      >
+        <LayoutDashboard className="size-4 shrink-0" aria-hidden />
+        <span className="text-[7px] font-black uppercase tracking-tighter leading-none">Pulse</span>
+      </button>
+    </div>
   );
 }
 
@@ -173,9 +219,9 @@ export function PulseBottomNav({
   return (
     <nav
       className="lg:hidden fixed bottom-0 inset-x-0 z-[60] border-t border-white/10 bg-[#050505]/95 backdrop-blur-xl pulse-bottom-nav"
-      aria-label="Pulse sections"
+      aria-label="Blocks sections"
     >
-      <div className="flex items-stretch overflow-x-auto no-scrollbar px-1">
+      <div className="grid w-full grid-cols-5 gap-0 divide-x divide-y divide-white/10">
         {bottomTabs.map((tab) => (
           <PulseNavItem
             key={tab.id}

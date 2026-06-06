@@ -80,15 +80,15 @@ export default function DashboardMode2() {
         </PulseModule>
       </div>
       <div className="col-span-12 md:col-span-3 min-h-0 overflow-hidden flex flex-col">
-        <PulseModule title="Crypto" href="/pulse/markets?category=crypto">
+        <PulseModule title="Crypto" href="/blocks/markets?category=crypto">
           {bySymbol(CRYPTO_SYMBOLS).map((t) => (
             <TickerRow key={t.id} ticker={t} />
           ))}
-          <Link href="/pulse/markets?category=crypto" className="block text-xs text-stone-500 hover:text-stone-300 shrink-0">All →</Link>
+          <Link href="/blocks/markets?category=crypto" className="block text-xs text-stone-500 hover:text-stone-300 shrink-0">All →</Link>
         </PulseModule>
       </div>
       <div className="col-span-12 md:col-span-2 min-h-0 overflow-hidden flex flex-col">
-        <PulseModule title="Metals" href="/pulse/markets?category=metals">
+        <PulseModule title="Metals" href="/blocks/markets?category=metals">
           {bySymbol(METALS_SYMBOLS).map((t) => (
             <TickerRow key={t.id} ticker={t} />
           ))}
@@ -100,29 +100,29 @@ export default function DashboardMode2() {
 
       {/* Row 2: fixed */}
       <div className="col-span-12 md:col-span-3 min-h-0 overflow-hidden flex flex-col">
-        <PulseModule title="Commodities" href="/pulse/markets?category=commodity">
+        <PulseModule title="Commodities" href="/blocks/markets?category=commodity">
           {bySymbol(COMMODITIES_SYMBOLS).map((t) => (
             <TickerRow key={t.id} ticker={t} />
           ))}
         </PulseModule>
       </div>
       <div className="col-span-12 md:col-span-3 min-h-0 overflow-hidden flex flex-col">
-        <PulseModule title="Bio Assets" href="/pulse/markets?category=bio">
+        <PulseModule title="Bio Assets" href="/blocks/markets?category=bio">
           {bySymbol(BIO_SYMBOLS).map((t) => (
             <TickerRow key={t.id} ticker={t} />
           ))}
-          <Link href="/pulse/myco" className="block text-xs hover:opacity-80 shrink-0" style={{ color: "var(--accent-gold)" }}>MYCO →</Link>
+          <Link href="/blocks/myco" className="block text-xs hover:opacity-80 shrink-0" style={{ color: "var(--accent-gold)" }}>MYCO →</Link>
         </PulseModule>
       </div>
       <div className="col-span-12 md:col-span-3 min-h-0 overflow-hidden flex flex-col">
-        <PulseModule title="Tech" href="/pulse/markets?category=tech">
+        <PulseModule title="Tech" href="/blocks/markets?category=tech">
           {bySymbol(TECH_SYMBOLS).map((t) => (
             <TickerRow key={t.id} ticker={t} />
           ))}
         </PulseModule>
       </div>
       <div className="col-span-12 md:col-span-3 min-h-0 overflow-hidden flex flex-col">
-        <PulseModule title="Business" href="/pulse/markets?category=business">
+        <PulseModule title="Business" href="/blocks/markets?category=business">
           {bySymbol(BUSINESS_SYMBOLS).map((t) => (
             <TickerRow key={t.id} ticker={t} />
           ))}
@@ -143,22 +143,22 @@ export default function DashboardMode2() {
 
       {/* Row 4: fixed */}
       <div className="col-span-12 md:col-span-3 min-h-0 overflow-hidden flex flex-col">
-        <PulseModule title="Watchlist" href="/pulse/markets">
+        <PulseModule title="Watchlist" href="/blocks/markets">
           {watchlistTickers.slice(0, 6).map((t) => (
             <TickerRow key={t.id} ticker={t} />
           ))}
-          <Link href="/pulse/markets" className="block text-xs text-stone-500 hover:text-stone-300 shrink-0">Markets →</Link>
+          <Link href="/blocks/markets" className="block text-xs text-stone-500 hover:text-stone-300 shrink-0">Markets →</Link>
         </PulseModule>
       </div>
       <div className="col-span-12 md:col-span-3 min-h-0 overflow-hidden flex flex-col">
-        <PulseModule title="Market Indicators" href="/pulse/markets?category=indicators">
+        <PulseModule title="Market Indicators" href="/blocks/markets?category=indicators">
           {bySymbol(INDICATORS_SYMBOLS).map((t) => (
             <TickerRow key={t.id} ticker={t} />
           ))}
         </PulseModule>
       </div>
       <div className="col-span-12 md:col-span-3 min-h-0 overflow-hidden flex flex-col">
-        <PulseModule title="MYCO Ecosystem" accent="amber" href="/pulse/myco">
+        <PulseModule title="MYCO Ecosystem" accent="amber" href="/blocks/myco">
           <MycoEcosystemCompact snapshot={myco} />
         </PulseModule>
       </div>
@@ -168,11 +168,11 @@ export default function DashboardMode2() {
 
       {/* Row 5: fixed */}
       <div className="col-span-12 md:col-span-4 min-h-0 overflow-hidden flex flex-col">
-        <PulseModule title="News" href="/pulse/news">
+        <PulseModule title="News" href="/blocks/news">
           {news.slice(0, 5).map((n) => (
             <NewsHeadline key={n.id} item={n} enriched={enrichedNews.find((e) => e.id === n.id)} />
           ))}
-          <Link href="/pulse/news" className="block text-xs text-stone-500 hover:text-stone-300 shrink-0">All news →</Link>
+          <Link href="/blocks/news" className="block text-xs text-stone-500 hover:text-stone-300 shrink-0">All news →</Link>
         </PulseModule>
       </div>
       <div className="col-span-12 md:col-span-4 min-h-0 overflow-hidden flex flex-col">

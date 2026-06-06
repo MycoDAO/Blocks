@@ -87,7 +87,8 @@
   }
 
   .pulse-content-pad {
-    padding-bottom: calc(3.75rem + env(safe-area-inset-bottom, 0px));
+    /* Two rows of square bottom-nav tiles (5 cols × aspect-square) */
+    padding-bottom: calc((100vw / 5) * 2 + env(safe-area-inset-bottom, 0px));
   }
 
   @media (min-width: 1024px) {
@@ -143,6 +144,10 @@
 }
 
 /* Grid Layout Custom Styles */
+.react-grid-layout {
+  width: 100% !important;
+}
+
 .react-grid-item.react-grid-placeholder {
   background: var(--color-myco-accent) !important;
   opacity: 0.1 !important;

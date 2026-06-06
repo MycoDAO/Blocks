@@ -43,12 +43,12 @@ export default function TradingTerminal() {
         </div>
         <div className="flex flex-wrap gap-2 items-center">
           <Link
-            href="/pulse/markets"
+            href="/blocks/markets"
             className="text-xs px-3 py-2 rounded border border-stone-600 text-stone-400 hover:text-stone-200 min-h-[44px] inline-flex items-center"
           >
             Markets overview
           </Link>
-          <Link href="/pulse" className="text-xs text-stone-500 hover:text-stone-300 min-h-[44px] inline-flex items-center">
+          <Link href="/blocks" className="text-xs text-stone-500 hover:text-stone-300 min-h-[44px] inline-flex items-center">
             ← Pulse
           </Link>
         </div>

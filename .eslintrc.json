@@ -1,4 +1,4 @@
 {
   "extends": "next/core-web-vitals",
-  "ignorePatterns": ["app/natureapp/**", "public/pulse/**", "myco-pulse/**"]
+  "ignorePatterns": ["app/natureapp/**", "public/blocks/**", "public/pulse/**", "myco-pulse/**"]
 }

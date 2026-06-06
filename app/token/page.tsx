@@ -8,8 +8,8 @@ export const metadata = {
 export default function TokenPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <Link href="/pulse" className="text-sm text-stone-500 hover:text-stone-700 mb-4 inline-block">
-        ← Market Pulse
+      <Link href="/blocks" className="text-sm text-stone-500 hover:text-stone-700 mb-4 inline-block">
+        ← Blocks
       </Link>
       <h1 className="text-2xl font-bold text-stone-900">MYCO Token</h1>
       <p className="text-stone-600 mt-2">
@@ -35,8 +35,8 @@ export default function TokenPage() {
           Citizen science rewards, compound marketplace, biobank storage, tissue licensing, environmental monitoring data, IP tokenization and licensing.
         </p>
       </section>
-      <Link href="/pulse/myco" className="inline-block mt-6 font-medium hover:opacity-80 transition-opacity" style={{ color: "var(--accent-gold)" }}>
-        View MYCO in Market Pulse →
+      <Link href="/blocks" className="inline-block mt-6 font-medium hover:opacity-80 transition-opacity" style={{ color: "var(--accent-gold)" }}>
+        View MYCO in Blocks →
       </Link>
     </div>
   );

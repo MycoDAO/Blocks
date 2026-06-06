@@ -14,7 +14,8 @@
     "lint": "next lint",
     "check:backends": "node scripts/check-pulse-backends.mjs",
     "test:pulse-smoke": "node scripts/pulse-smoke-local.mjs",
-    "test:pulse-smoke:prod": "node scripts/pulse-smoke-local.mjs https://pulse.mycodao.com",
+    "test:pulse-smoke:prod": "node scripts/pulse-smoke-local.mjs https://blocks.mycodao.com",
+    "test:blocks-smoke:prod": "node scripts/pulse-smoke-local.mjs https://blocks.mycodao.com",
     "docs:pdf": "node scripts/generate-report-pdf.js",
     "figma:export": "node scripts/export-figma-assets.mjs"
   },

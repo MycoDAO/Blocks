@@ -4,7 +4,7 @@ import path from 'path';
 import type {Plugin} from 'vite';
 import {defineConfig, loadEnv} from 'vite';
 
-/** Phantom OAuth callback lands on origin root; Pulse SPA is under /pulse/. */
+/** Phantom OAuth callback lands on origin root; Blocks SPA is under /blocks/. */
 function phantomOAuthRootRedirect(): Plugin {
   return {
     name: 'phantom-oauth-root-redirect',
@@ -13,7 +13,7 @@ function phantomOAuthRootRedirect(): Plugin {
         const url = req.url ?? '';
         if (url === '/' || url.startsWith('/?')) {
           res.statusCode = 302;
-          res.setHeader('Location', `/pulse${url.slice(1)}`);
+          res.setHeader('Location', `/blocks${url.slice(1)}`);
           res.end();
           return;
         }
@@ -26,7 +26,7 @@ function phantomOAuthRootRedirect(): Plugin {
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', ['', 'VITE_']);
   return {
-    base: '/pulse/',
+    base: '/blocks/',
     plugins: [react(), tailwindcss(), phantomOAuthRootRedirect()],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(
@@ -42,7 +42,7 @@ export default defineConfig(({mode}) => {
       },
     },
     build: {
-      outDir: path.resolve(__dirname, '../public/pulse'),
+      outDir: path.resolve(__dirname, '../public/blocks'),
       emptyOutDir: true,
     },
     css: {

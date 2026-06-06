@@ -6,7 +6,7 @@
  *
  * Usage:
  *   node scripts/pulse-smoke-local.mjs
- *   node scripts/pulse-smoke-local.mjs https://pulse.mycodao.com
+ *   node scripts/pulse-smoke-local.mjs https://blocks.mycodao.com
  *
  * Optional first argument overrides base URL (same as PULSE_SMOKE_BASE).
  *

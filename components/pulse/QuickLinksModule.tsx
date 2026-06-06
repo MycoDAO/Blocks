@@ -3,12 +3,12 @@
 import Link from "next/link";
 
 const LINKS = [
-  { href: "/pulse/markets", label: "Markets" },
-  { href: "/pulse/news", label: "News" },
-  { href: "/pulse/podcasts", label: "Podcasts" },
-  { href: "/pulse/learn", label: "Learn" },
-  { href: "/pulse/myco", label: "MYCO" },
-  { href: "/pulse/settings", label: "Settings" },
+  { href: "/blocks/markets", label: "Markets" },
+  { href: "/blocks/news", label: "News" },
+  { href: "/blocks/podcasts", label: "Podcasts" },
+  { href: "/blocks/learn", label: "Learn" },
+  { href: "/blocks/myco", label: "MYCO" },
+  { href: "/blocks/settings", label: "Settings" },
 ];
 
 export default function QuickLinksModule() {

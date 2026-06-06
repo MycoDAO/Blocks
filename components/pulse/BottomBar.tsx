@@ -6,14 +6,14 @@ import { usePathname } from "next/navigation";
 import { useDashboardMode } from "@/lib/dashboard-mode-context";
 
 const TABS = [
-  { href: "/pulse", label: "Pulse" },
-  { href: "/pulse/markets", label: "Markets" },
-  { href: "/pulse/trade", label: "Trade" },
-  { href: "/pulse/news", label: "News" },
-  { href: "/pulse/podcasts", label: "Podcasts" },
-  { href: "/pulse/learn", label: "Learn" },
-  { href: "/pulse/myco", label: "MYCO" },
-  { href: "/pulse/settings", label: "Settings" },
+  { href: "/blocks", label: "Pulse" },
+  { href: "/blocks/markets", label: "Markets" },
+  { href: "/blocks/trade", label: "Trade" },
+  { href: "/blocks/news", label: "News" },
+  { href: "/blocks/podcasts", label: "Podcasts" },
+  { href: "/blocks/learn", label: "Learn" },
+  { href: "/blocks/myco", label: "MYCO" },
+  { href: "/blocks/settings", label: "Settings" },
 ];
 
 export default function BottomBar() {
@@ -65,7 +65,7 @@ export default function BottomBar() {
         </div>
         <nav className="flex items-center gap-1" aria-label="Pulse navigation">
           {TABS.map(({ href, label }) => {
-            const active = pathname === href || (href !== "/pulse" && pathname?.startsWith(href + "/"));
+            const active = pathname === href || (href !== "/blocks" && pathname?.startsWith(href + "/"));
             return (
               <Link
                 key={href}

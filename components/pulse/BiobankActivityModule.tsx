@@ -16,7 +16,7 @@ function formatNum(value: number): string {
 export default function BiobankActivityModule({ data }: BiobankActivityModuleProps) {
   if (!data) {
     return (
-      <PulseModule title="Biobank Activity" accent="amber" href="/pulse/myco">
+      <PulseModule title="Biobank Activity" accent="amber" href="/blocks/myco">
         <p className="text-xs text-stone-500 py-0.5">Loading…</p>
       </PulseModule>
     );
@@ -29,7 +29,7 @@ export default function BiobankActivityModule({ data }: BiobankActivityModulePro
   ];
 
   return (
-    <PulseModule title="Biobank Activity" accent="amber" href="/pulse/myco">
+    <PulseModule title="Biobank Activity" accent="amber" href="/blocks/myco">
       <div className="space-y-0">
         {rows.map(({ label, value }) => (
           <div

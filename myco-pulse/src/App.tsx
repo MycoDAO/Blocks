@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SPECIMENS } from './data/fungIp';
 import { 
@@ -100,10 +100,10 @@ import type {
   PulseTicker,
   PulseMycoSnapshot,
 } from './lib/pulseApi';
-import { fetchPulseConfigStatus } from './lib/pulseApi';
+import { buildOracleSyncInsight } from './lib/oracleSyncInsight';
 import { formatGlobalMarketSessionSummary } from './lib/marketSessions';
 import { mergeTickerGroupsWithStudio } from './data/studioPresets';
-import { PulseBottomNav, PulseSidebarNav, type PulseTabId } from './components/PulseShellNav';
+import { PulseBottomNav, PulseSidebarNav, PulseMobileBrandPair, type PulseTabId } from './components/PulseShellNav';
 
 // Handle RGL ESM/CJS interop
 const Grid = (RGL as any).default || RGL;
@@ -119,6 +119,26 @@ function stackGridLayout(
     y += item.h;
     return next;
   });
+}
+
+/** Full-width square tiles on tablet/phone — h equals w in grid units when rowHeight = width/cols. */
+function squareStackLayout(
+  items: { i: string; w: number; h: number; x?: number; y?: number }[],
+  cols: number
+) {
+  let y = 0;
+  return items.map((item) => {
+    const next = { ...item, x: 0, w: cols, h: cols, y };
+    y += cols;
+    return next;
+  });
+}
+
+function gridColsForWidth(width: number): number {
+  if (width >= 1200) return 12;
+  if (width >= 996) return 6;
+  if (width >= 768) return 3;
+  return 1;
 }
 
 const lgLayout = [
@@ -152,10 +172,10 @@ const lgLayout = [
 
 const initialLayouts = {
   lg: lgLayout,
-  md: stackGridLayout(lgLayout, 6),
-  sm: stackGridLayout(lgLayout, 3),
-  xs: stackGridLayout(lgLayout, 1),
-  xxs: stackGridLayout(lgLayout, 1),
+  md: squareStackLayout(lgLayout, 6),
+  sm: squareStackLayout(lgLayout, 3),
+  xs: squareStackLayout(lgLayout, 1),
+  xxs: squareStackLayout(lgLayout, 1),
 };
 
 // --- TERMINAL COMPONENTS ---
@@ -234,6 +254,8 @@ const PulseDashboard = ({
 }: any) => {
   const [fullWidget, setFullWidget] = useState<string | null>(null);
   const [savedLayouts, setSavedLayouts] = useState<any>(null);
+  const pulseGridRef = useRef<HTMLDivElement>(null);
+  const [pulseGridWidth, setPulseGridWidth] = useState(0);
   const [mindexReachable, setMindexReachable] = useState<boolean | null>(null);
   const [globalMarket, setGlobalMarket] = useState<any>({ SOL: '...', BTC: '...', ETH: '...', status: 'SYNCING' });
   const [exchangeSessionSummary, setExchangeSessionSummary] = useState(() =>
@@ -260,6 +282,24 @@ const PulseDashboard = ({
     const t = setInterval(refresh, 30_000);
     return () => clearInterval(t);
   }, []);
+
+  useEffect(() => {
+    const el = pulseGridRef.current;
+    if (!el) return;
+    const update = () => setPulseGridWidth(el.clientWidth);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const pulseGridCols = gridColsForWidth(
+    pulseGridWidth || (typeof window !== "undefined" ? window.innerWidth : 1200)
+  );
+  const pulseRowHeight =
+    pulseGridWidth >= 1200
+      ? 80
+      : Math.max(72, Math.floor(pulseGridWidth / Math.max(1, pulseGridCols)));
 
   const bigMovers = useMemo(() => buildBigMovers(tickers, 5), [tickers]);
 
@@ -472,13 +512,13 @@ const PulseDashboard = ({
           <div className="h-full bg-white/40 animate-[loading_1s_infinite]" style={{ width: '40%' }} />
         </div>
       )}
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-6 lg:pb-24 min-h-0">
+      <div ref={pulseGridRef} className="flex-1 overflow-y-auto no-scrollbar pb-6 lg:pb-24 min-h-0">
         <ResponsiveGridLayout
           className="layout"
           layouts={layouts}
           breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
           cols={{ lg: 12, md: 6, sm: 3, xs: 1, xxs: 1 }}
-          rowHeight={80}
+          rowHeight={pulseRowHeight}
           draggableHandle=".drag-handle"
           margin={[0, 0]}
           containerPadding={[0, 0]}
@@ -2019,10 +2059,8 @@ const IconBySymbol = ({ symbol }: { symbol: string }) => {
 // --- MAIN APP ---
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<PulseTabId>('Pulse');
+  const [activeTab, setActiveTab] = useState<PulseTabId>('News');
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [aiInsight, setAiInsight] = useState<string>("SYNCHRONIZING MINDEX REALM PROPOSALS... [READY]");
-  const [isAiLoading, setIsAiLoading] = useState(false);
   const [layouts, setLayouts] = useState<any>(initialLayouts);
   
   // Real-Time Data Hook
@@ -2049,6 +2087,34 @@ export default function App() {
     [tickers]
   );
 
+  const aiInsight = useMemo(
+    () =>
+      buildOracleSyncInsight({
+        loading,
+        tickers,
+        news,
+        episodes,
+        calendar,
+        research,
+        learnModules,
+        whales,
+        fearGreed,
+        chainStats,
+      }),
+    [
+      loading,
+      tickers,
+      news,
+      episodes,
+      calendar,
+      research,
+      learnModules,
+      whales,
+      fearGreed,
+      chainStats,
+    ]
+  );
+
   useEffect(() => {
     const root = document.documentElement;
     if (isDarkMode) {
@@ -2059,36 +2125,6 @@ export default function App() {
       root.classList.remove('dark');
     }
   }, [isDarkMode]);
-
-  const getAiPulse = async () => {
-    setIsAiLoading(true);
-    try {
-      const status = configStatus ?? (await fetchPulseConfigStatus());
-      const keys = status?.configured ?? {};
-      const live = [
-        keys.MAS_API_URL && "MAS",
-        keys.MINDEX_API_URL && "MINDEX",
-        keys.FINNHUB_API_KEY && "MARKETS",
-        keys.CRYPTO_NEWS_RSS && "CRYPTO RSS",
-        keys.GNEWS_API_KEY || keys.NEWS_API_KEY ? "NEWS API" : null,
-        keys.PODCAST_RSS_URLS && "PODCAST",
-      ].filter(Boolean);
-      setAiInsight(
-        live.length
-          ? `LIVE FEEDS: ${live.join(" · ")}.`
-          : "Configure MYCODAO API keys for live markets, news, calendar, and podcasts."
-      );
-    } catch {
-      setAiInsight("Pulse API status unavailable — check Next server on :3004.");
-    } finally {
-      setIsAiLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const timer = setTimeout(getAiPulse, 1000);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     void prefetchPulseNewsBundle();
@@ -2126,12 +2162,13 @@ export default function App() {
       <main className="flex-1 flex flex-col relative overflow-hidden bg-[#050505] min-w-0 pulse-content-pad">
         {/* Top Header Rail */}
         <header className="shrink-0 border-b border-white/5 flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 lg:px-6 py-2 min-h-14 bg-[#050505]/80 backdrop-blur-xl z-40">
-           <div className="flex items-center gap-3 sm:gap-6 min-w-0 flex-1">
+           <div className="flex items-center gap-2 sm:gap-6 min-w-0 flex-1">
+              <PulseMobileBrandPair activeTab={activeTab} setActiveTab={setActiveTab} />
               <button
                 type="button"
                 onClick={() => setActiveTab('News')}
                 className={cn(
-                  "flex items-center gap-2 sm:gap-3 text-left transition-opacity hover:opacity-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-myco-accent/60 rounded-sm min-h-[44px] shrink-0",
+                  "hidden md:flex items-center gap-2 sm:gap-3 text-left transition-opacity hover:opacity-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-myco-accent/60 rounded-sm min-h-[44px] shrink-0",
                   activeTab === 'News' ? "opacity-100" : "opacity-80 hover:opacity-95"
                 )}
                 aria-label="Open Block News Live"

@@ -14,7 +14,7 @@ export default function LessonCard({ module: m }: LessonCardProps) {
 
   return (
     <Link
-      href={`/pulse/learn/${m.id}`}
+      href={`/blocks/learn/${m.id}`}
       className="block rounded border border-stone-700 bg-stone-900/80 p-4 hover:border-stone-600 transition-colors"
     >
       <div className="flex flex-wrap items-center gap-2 text-xs text-stone-500 mb-2">

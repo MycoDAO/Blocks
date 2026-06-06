@@ -10,7 +10,7 @@ type DaoGovernanceModuleProps = {
 export default function DaoGovernanceModule({ data }: DaoGovernanceModuleProps) {
   if (!data) {
     return (
-      <PulseModule title="DAO Governance" accent="amber" href="/pulse/myco">
+      <PulseModule title="DAO Governance" accent="amber" href="/blocks/myco">
         <p className="text-xs text-stone-500 py-0.5">Loading…</p>
       </PulseModule>
     );
@@ -23,7 +23,7 @@ export default function DaoGovernanceModule({ data }: DaoGovernanceModuleProps) 
   ];
 
   return (
-    <PulseModule title="DAO Governance" accent="amber" href="/pulse/myco">
+    <PulseModule title="DAO Governance" accent="amber" href="/blocks/myco">
       <div className="space-y-0">
         {rows.map(({ label, value }) => (
           <div

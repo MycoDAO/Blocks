@@ -33,7 +33,7 @@ export default function RotatableSlotContent({ moduleId, onShown }: RotatableSlo
     switch (moduleId) {
       case "research":
         return (
-          <PulseModule title="Research" href="/pulse/myco">
+          <PulseModule title="Research" href="/blocks/myco">
             {research.slice(0, 6).map((r) => (
               <ResearchRow key={r.id} item={r} />
             ))}
@@ -41,7 +41,7 @@ export default function RotatableSlotContent({ moduleId, onShown }: RotatableSlo
         );
       case "learn":
         return (
-          <PulseModule title="Learn" href="/pulse/learn">
+          <PulseModule title="Learn" href="/blocks/learn">
             {learn.slice(0, 6).map((l) => (
               <LessonRow key={l.id} module={l} />
             ))}
@@ -49,7 +49,7 @@ export default function RotatableSlotContent({ moduleId, onShown }: RotatableSlo
         );
       case "podcasts":
         return (
-          <PulseModule title="Podcasts" href="/pulse/podcasts">
+          <PulseModule title="Podcasts" href="/blocks/podcasts">
             {podcasts.slice(0, 5).map((p) => (
               <PodcastRow key={p.id} episode={p} />
             ))}
@@ -61,7 +61,7 @@ export default function RotatableSlotContent({ moduleId, onShown }: RotatableSlo
         return <ResearchFundingModule metrics={myco?.researchFunding} lastUpdated={myco?.updatedAt} />;
       case "featuredNews":
         return (
-          <PulseModule title="Featured News" href="/pulse/news">
+          <PulseModule title="Featured News" href="/blocks/news">
             {news.slice(0, 5).map((n) => (
               <NewsHeadline key={n.id} item={n} enriched={enrichedNews.find((e) => e.id === n.id)} />
             ))}
@@ -69,7 +69,7 @@ export default function RotatableSlotContent({ moduleId, onShown }: RotatableSlo
         );
       case "featuredProposal":
         return (
-          <PulseModule title="Featured Proposal" href="/pulse/myco">
+          <PulseModule title="Featured Proposal" href="/blocks/myco">
             {research.filter((r) => r.category === "funding").slice(0, 4).map((r) => (
               <ResearchRow key={r.id} item={r} />
             ))}
@@ -77,7 +77,7 @@ export default function RotatableSlotContent({ moduleId, onShown }: RotatableSlo
         );
       case "featuredGrant":
         return (
-          <PulseModule title="Featured Grant" href="/pulse/myco">
+          <PulseModule title="Featured Grant" href="/blocks/myco">
             {research.filter((r) => r.category === "ecosystem").slice(0, 4).map((r) => (
               <ResearchRow key={r.id} item={r} />
             ))}
@@ -85,7 +85,7 @@ export default function RotatableSlotContent({ moduleId, onShown }: RotatableSlo
         );
       case "watchlist":
         return (
-          <PulseModule title="Watchlist" href="/pulse/markets">
+          <PulseModule title="Watchlist" href="/blocks/markets">
             {watchlistTickers.slice(0, 6).map((t) => (
               <TickerRow key={t.id} ticker={t} />
             ))}

@@ -25,7 +25,7 @@ export default function MarketHeatmapModule() {
   }, [tickers]);
 
   return (
-    <PulseModule title="Market Heatmap" href="/pulse/markets">
+    <PulseModule title="Market Heatmap" href="/blocks/markets">
       <div className="grid grid-cols-4 gap-[2px] p-[2px]">
         {grid.map((t: Ticker) => (
           <div

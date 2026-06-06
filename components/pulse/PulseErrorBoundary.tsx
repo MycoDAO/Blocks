@@ -24,7 +24,7 @@ export default class PulseErrorBoundary extends React.Component<
           <div className="text-center">
             <h1 className="text-xl font-bold text-stone-100 mb-2">Market Pulse</h1>
             <p className="text-stone-500 mb-4">Something went wrong. Try refreshing.</p>
-            <a href="/pulse" className="text-stone-400 hover:text-stone-300 text-sm">
+            <a href="/blocks" className="text-stone-400 hover:text-stone-300 text-sm">
               Reload
             </a>
           </div>

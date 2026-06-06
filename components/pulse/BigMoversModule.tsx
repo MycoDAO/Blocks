@@ -58,7 +58,7 @@ export default function BigMoversModule({ tickers }: BigMoversModuleProps) {
   }, [tickers, filter, subTab]);
 
   return (
-    <PulseModule title="Big Movers" accent="amber" href="/pulse/markets">
+    <PulseModule title="Big Movers" accent="amber" href="/blocks/markets">
       <div className="space-y-0">
         <div className="flex flex-wrap items-center gap-0.5">
           {FILTERS.map((f) => (

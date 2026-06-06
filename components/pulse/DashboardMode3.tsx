@@ -57,7 +57,7 @@ export default function DashboardMode3() {
         <div className="flex-1 min-h-0 overflow-hidden p-[2px]">
           {focus === "myco" && myco && (
             <div className="space-y-1">
-              <PulseModule title="MYCO Ecosystem" accent="amber" href="/pulse/myco">
+              <PulseModule title="MYCO Ecosystem" accent="amber" href="/blocks/myco">
                 <MycoEcosystemCompact snapshot={myco} />
               </PulseModule>
               <div className="text-xs text-stone-500 p-1">
@@ -66,7 +66,7 @@ export default function DashboardMode3() {
             </div>
           )}
           {focus === "podcast" && (
-            <PulseModule title="Featured Podcast" href="/pulse/podcasts">
+            <PulseModule title="Featured Podcast" href="/blocks/podcasts">
               {podcasts[0] && (
                 <div className="p-1 space-y-0.5">
                   <p className="text-sm font-semibold text-stone-200">{podcasts[0].title}</p>
@@ -77,7 +77,7 @@ export default function DashboardMode3() {
             </PulseModule>
           )}
           {focus === "news" && (
-            <PulseModule title="Featured Story" href="/pulse/news">
+            <PulseModule title="Featured Story" href="/blocks/news">
               {news.slice(0, 3).map((n) => (
                 <NewsHeadline key={n.id} item={n} enriched={enrichedNews.find((e) => e.id === n.id)} />
               ))}
@@ -98,7 +98,7 @@ export default function DashboardMode3() {
         <PulseModule title="Status">
           <StatusModule />
         </PulseModule>
-        <PulseModule title="Top Movers" href="/pulse/markets">
+        <PulseModule title="Top Movers" href="/blocks/markets">
           {tickers
             .filter((t) => t.changePct !== 0)
             .sort((a, b) => Math.abs(b.changePct) - Math.abs(a.changePct))

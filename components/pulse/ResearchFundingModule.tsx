@@ -18,7 +18,7 @@ function formatMyco(value: number): string {
 export default function ResearchFundingModule({ metrics, lastUpdated }: ResearchFundingModuleProps) {
   if (!metrics) {
     return (
-      <PulseModule title="Research Funding" accent="amber" href="/pulse/myco">
+      <PulseModule title="Research Funding" accent="amber" href="/blocks/myco">
         <p className="text-xs text-stone-500 py-0.5">Loading…</p>
       </PulseModule>
     );
@@ -35,7 +35,7 @@ export default function ResearchFundingModule({ metrics, lastUpdated }: Research
   ];
 
   return (
-    <PulseModule title="Research Funding" accent="amber" href="/pulse/myco">
+    <PulseModule title="Research Funding" accent="amber" href="/blocks/myco">
       <div className="space-y-0">
         {rows.map(({ label, value }) => (
           <div
@@ -54,7 +54,7 @@ export default function ResearchFundingModule({ metrics, lastUpdated }: Research
           </span>
         )}
         <div className="flex gap-0.5 shrink-0">
-<Link href="/pulse/myco" className="text-xs hover:opacity-80 transition-opacity" style={{ color: "var(--accent-gold)" }}>
+<Link href="/blocks/myco" className="text-xs hover:opacity-80 transition-opacity" style={{ color: "var(--accent-gold)" }}>
           Myco →
         </Link>
         <Link href="/token" className="text-xs hover:opacity-80 transition-opacity" style={{ color: "var(--accent-gold)" }}>

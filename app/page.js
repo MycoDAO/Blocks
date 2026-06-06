@@ -9,10 +9,10 @@ export default function HomePage() {
       </header>
       <div className="flex flex-wrap gap-3">
         <Link
-          href="/pulse"
+          href="/blocks"
           className="inline-flex items-center gap-2 rounded-lg bg-stone-900 text-stone-100 px-4 py-2 text-sm font-medium hover:bg-stone-800"
         >
-          Market Pulse
+          Blocks
         </Link>
         <Link
           href="/token"

@@ -21,7 +21,7 @@ export default function WhyItsMovingModule() {
   }, [tickers, whyMovingMap]);
 
   return (
-    <PulseModule title="Why It's Moving" accent="amber" href="/pulse/markets">
+    <PulseModule title="Why It's Moving" accent="amber" href="/blocks/markets">
       <div className="space-y-0">
         {rows.map(({ ticker, reason }) => {
           const up = ticker.changePct >= 0;

@@ -27,7 +27,7 @@ export default function PodcastRow({ episode }: PodcastRowProps) {
       >
         {playing ? "⏸" : "▶"}
       </button>
-      <Link href="/pulse/podcasts" className="min-w-0 flex-1">
+      <Link href="/blocks/podcasts" className="min-w-0 flex-1">
         <span className="text-xs text-stone-200 line-clamp-1 block">{episode.title}</span>
         <span className="text-xs text-stone-500">{episode.show} · {formatDuration(episode.durationSec)}</span>
       </Link>

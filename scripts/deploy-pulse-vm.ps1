@@ -103,4 +103,4 @@ if ($ppk) {
 }
 
 & plink.exe @plinkArgs $bash
-Write-Host "Done. Test: https://pulse.mycodao.com/api/health and npm run test:pulse-smoke:prod"
+Write-Host "Done. Test: https://blocks.mycodao.com/api/health and npm run test:blocks-smoke:prod"

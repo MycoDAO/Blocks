@@ -10,8 +10,8 @@ const PHANTOM_PORTAL_ICON =
 
 /**
  * OAuth redirect_uri — must match Phantom Portal redirect URLs exactly (origin only).
- * Portal: https://pulse.mycodao.com, http://pulse.mycodao.com (no /pulse path).
- * After OAuth, root forwards query params to /pulse/ so PhantomProvider can resume.
+ * Portal: https://blocks.mycodao.com, http://blocks.mycodao.com (origin only, no /blocks path).
+ * After OAuth, root forwards query params to /blocks/ so PhantomProvider can resume.
  */
 export function resolvePhantomRedirectUrl(): string {
   const fromEnv = import.meta.env.VITE_PHANTOM_REDIRECT_URL?.trim();
@@ -21,7 +21,7 @@ export function resolvePhantomRedirectUrl(): string {
     return window.location.origin;
   }
 
-  return "https://pulse.mycodao.com";
+  return "https://blocks.mycodao.com";
 }
 
 export function buildPhantomConfig(): PhantomSDKConfig {
@@ -38,4 +38,4 @@ export function buildPhantomConfig(): PhantomSDKConfig {
 export const PHANTOM_APP_ICON =
   typeof mycodaoColorLogo === "string" ? mycodaoColorLogo : PHANTOM_PORTAL_ICON;
 
-export const PHANTOM_APP_NAME = "Pulse";
+export const PHANTOM_APP_NAME = "Blocks";
