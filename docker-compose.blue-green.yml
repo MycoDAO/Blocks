@@ -1,0 +1,105 @@
+# =============================================================================
+# MycoDAO BLOCKS — BLUE/GREEN ZERO-DOWNTIME OVERLAY
+# =============================================================================
+# Apply ON TOP OF docker-compose.yml:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.blue-green.yml \
+#     up -d mycodao-proxy mycodao-blue
+#
+# Architecture:
+#   cloudflared → mycodao-proxy:3004 (nginx) → active slot (blue or green)
+#   Proxy reads /opt/mycodao/state/active-slot (contents: "blue" or "green")
+#
+# Cutover: scripts/blue-green-deploy.sh (NOT plain docker compose up).
+# =============================================================================
+
+services:
+  cloudflared:
+    depends_on:
+      mycodao-proxy:
+        condition: service_healthy
+
+  mycodao-proxy:
+    image: nginx:1.27-alpine
+    container_name: mycodao-proxy
+    restart: unless-stopped
+    ports:
+      - "3004:80"
+    volumes:
+      - ${MYCODAO_STATE_DIR:-/opt/mycodao/state}:/etc/nginx/state:ro
+      - ${MYCODAO_NGINX_DIR:-/opt/mycodao/nginx}/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${MYCODAO_NGINX_DIR:-/opt/mycodao/nginx}/conf.d:/etc/nginx/conf.d:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - mycodao
+    labels:
+      - "com.mycodao.service=blocks-proxy"
+      - "com.mycodao.critical=true"
+
+  mycodao-blue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${MYCODAO_IMAGE_BLUE:-mycodao:blue}
+    container_name: mycodao-blue
+    expose: ["3004"]
+    env_file:
+      - .env.production
+    environment:
+      NODE_ENV: production
+      DEPLOY_SLOT: blue
+    volumes:
+      - ${BLOCKS_NAS_ROOT:-/mnt/nas/mycodao/BLOCKS}:${BLOCKS_NAS_ROOT:-/mnt/nas/mycodao/BLOCKS}:ro
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"require('http').get('http://127.0.0.1:3004/api/health',(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+    networks:
+      - mycodao
+    labels:
+      - "com.mycodao.service=blocks"
+      - "com.mycodao.slot=blue"
+
+  mycodao-green:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${MYCODAO_IMAGE_GREEN:-mycodao:green}
+    container_name: mycodao-green
+    expose: ["3004"]
+    env_file:
+      - .env.production
+    environment:
+      NODE_ENV: production
+      DEPLOY_SLOT: green
+    volumes:
+      - ${BLOCKS_NAS_ROOT:-/mnt/nas/mycodao/BLOCKS}:${BLOCKS_NAS_ROOT:-/mnt/nas/mycodao/BLOCKS}:ro
+    profiles: ["green"]
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"require('http').get('http://127.0.0.1:3004/api/health',(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+    networks:
+      - mycodao
+    labels:
+      - "com.mycodao.service=blocks"
+      - "com.mycodao.slot=green"

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" role="img" aria-label="Project Fusarium  pathogen research">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1a0505"/>
+      <stop offset="100%" stop-color="#4a1010"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg)"/>
+  <g stroke="#ff5c39" stroke-width="2" fill="none" opacity="0.7">
+    <path d="M120 320 Q200 180 280 320 T440 320 T600 320"/>
+    <path d="M160 340 Q240 200 320 340 T480 340 T640 340"/>
+    <path d="M200 360 Q280 220 360 360 T520 360 T680 360"/>
+  </g>
+  <g fill="#ff5c39" opacity="0.85">
+    <ellipse cx="400" cy="240" rx="120" ry="80"/>
+    <ellipse cx="360" cy="220" rx="35" ry="55" transform="rotate(-20 360 220)"/>
+    <ellipse cx="440" cy="220" rx="35" ry="55" transform="rotate(20 440 220)"/>
+  </g>
+  <text x="400" y="390" text-anchor="middle" fill="#ff5c39" font-family="system-ui,sans-serif" font-size="26" font-weight="800" letter-spacing="0.1em">PROJECT FUSARIUM</text>
+</svg>

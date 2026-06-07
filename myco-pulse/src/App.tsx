@@ -80,6 +80,8 @@ import * as RGL from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { CNBCNewsWidget } from './components/CNBCNewsWidget';
+import { ProducerDashboard } from './components/ProducerDashboard';
+import { PodcastMediaPlayer } from './components/PodcastMediaPlayer';
 import { PulseMarqueeTicker, newsToTickerSegments } from './components/PulseMarqueeTicker';
 import { MatrixSwap } from './components/MatrixSwap';
 import { WhaleWatch } from './components/WhaleWatch';
@@ -110,6 +112,9 @@ import { buildOracleSyncInsight } from './lib/oracleSyncInsight';
 import { formatGlobalMarketSessionSummary } from './lib/marketSessions';
 import { mergeTickerGroupsWithStudio } from './data/studioPresets';
 import { PulseBottomNav, PulseSidebarNav, PulseMobileBrandPair, type PulseTabId } from './components/PulseShellNav';
+import { FundingView } from './components/FundingView';
+import { ResearchView } from './components/ResearchView';
+import { useMediaQuery } from './hooks/useMediaQuery';
 
 // Handle RGL ESM/CJS interop
 const Grid = (RGL as any).default || RGL;
@@ -202,30 +207,41 @@ const Ticker = ({ groups = EMPTY_TICKER_GROUPS }: { groups?: typeof EMPTY_TICKER
   </div>
 );
 
-const WidgetWrapper = ({ children, title, onToggleFull, isFull, id }: any) => (
-  <div className={cn(
-    "w-full h-full glass-bento flex flex-col overflow-hidden group relative rounded-none transition-all duration-300",
-    isFull ? "border-myco-accent shadow-[0_0_20px_rgba(0,255,136,0.15)] z-10" : ""
-  )}>
-    <div className="flex items-center justify-between p-3 border-b border-myco-border bg-black/20 drag-handle cursor-grab active:cursor-grabbing">
-      <div className="flex items-center gap-2">
-        <Activity className="w-3 h-3 text-myco-accent" />
-        <h3 className="text-[10px] font-bold text-dim uppercase tracking-widest">{title}</h3>
+const WidgetWrapper = ({ children, title, onToggleFull, isFull, id }: any) => {
+  const layoutLocked = useMediaQuery('(max-width: 767px)');
+
+  return (
+    <div className={cn(
+      "w-full h-full glass-bento flex flex-col overflow-hidden group relative rounded-none transition-all duration-300",
+      isFull ? "border-myco-accent shadow-[0_0_20px_rgba(0,255,136,0.15)] z-10" : ""
+    )}>
+      <div className={cn(
+        "flex items-center justify-between p-3 border-b border-[var(--myco-border)] bg-[var(--myco-card)]/80",
+        !layoutLocked && "drag-handle cursor-grab active:cursor-grabbing"
+      )}>
+        <div className="flex items-center gap-2 min-w-0">
+          <Activity className="w-3 h-3 text-myco-accent shrink-0" />
+          <h3 className="text-[10px] font-bold text-dim uppercase tracking-widest truncate">{title}</h3>
+        </div>
+        {!layoutLocked ? (
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => onToggleFull(id)}
+              className="p-1 hover:text-myco-accent text-dim transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
+              aria-label={isFull ? 'Restore widget size' : 'Expand widget'}
+            >
+              {isFull ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
+            </button>
+          </div>
+        ) : null}
       </div>
-      <div className="flex items-center gap-2">
-        <button 
-          onClick={() => onToggleFull(id)}
-          className="p-1 hover:text-myco-accent text-dim transition-colors"
-        >
-          {isFull ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
-        </button>
+      <div className="flex-1 p-3 overflow-hidden relative touch-pan-y">
+        {children}
       </div>
     </div>
-    <div className="flex-1 p-3 overflow-hidden relative">
-      {children}
-    </div>
-  </div>
-);
+  );
+};
 
 function formatNewsAge(iso?: string): string {
   if (!iso) return "—";
@@ -306,6 +322,8 @@ const PulseDashboard = ({
     pulseGridWidth >= 1200
       ? 80
       : Math.max(72, Math.floor(pulseGridWidth / Math.max(1, pulseGridCols)));
+
+  const isTouchPulse = pulseGridWidth > 0 && pulseGridWidth < 768;
 
   const bigMovers = useMemo(() => buildBigMovers(tickers, 5), [tickers]);
 
@@ -512,13 +530,19 @@ const PulseDashboard = ({
   );
 
   return (
-    <div className="flex-1 relative overflow-hidden flex flex-col bg-black">
-      {loading && (
+    <div className="flex-1 relative overflow-hidden flex flex-col pulse-view-surface">
+      {loading && !isTouchPulse ? (
         <div className="absolute inset-x-0 top-0 h-0.5 bg-myco-accent overflow-hidden z-[100]">
           <div className="h-full bg-white/40 animate-[loading_1s_infinite]" style={{ width: '40%' }} />
         </div>
-      )}
-      <div ref={pulseGridRef} className="flex-1 overflow-y-auto no-scrollbar pb-6 lg:pb-24 min-h-0">
+      ) : null}
+      <div
+        ref={pulseGridRef}
+        className={cn(
+          "flex-1 overflow-y-auto no-scrollbar pb-6 lg:pb-24 min-h-0 touch-pan-y",
+          isTouchPulse && "pulse-grid-touch"
+        )}
+      >
         <ResponsiveGridLayout
           className="layout"
           layouts={layouts}
@@ -526,6 +550,8 @@ const PulseDashboard = ({
           cols={{ lg: 12, md: 6, sm: 3, xs: 1, xxs: 1 }}
           rowHeight={pulseRowHeight}
           draggableHandle=".drag-handle"
+          isDraggable={!isTouchPulse}
+          isResizable={!isTouchPulse}
           margin={[0, 0]}
           containerPadding={[0, 0]}
           onLayoutChange={onLayoutChange}
@@ -1192,6 +1218,7 @@ const PodcastView = ({
   const [episodes, setEpisodes] = useState<PulsePodcastEpisode[]>(episodesProp);
   const [streamStats, setStreamStats] = useState<any>(streamStatsProp);
   const [loading, setLoading] = useState(episodesProp.length === 0);
+  const [selectedEpisode, setSelectedEpisode] = useState<PulsePodcastEpisode | null>(null);
 
   useEffect(() => {
     setEpisodes(episodesProp);
@@ -1222,11 +1249,27 @@ const PodcastView = ({
     return () => clearInterval(interval);
   }, [episodesProp.length]);
 
+  useEffect(() => {
+    if (!selectedEpisode && episodes.length > 0) return;
+    if (selectedEpisode && !episodes.some((ep) => ep.id === selectedEpisode.id)) {
+      setSelectedEpisode(null);
+    }
+  }, [episodes, selectedEpisode]);
+
   return (
-  <div className="flex-1 flex flex-col p-3 md:p-4 lg:p-6 gap-4 md:gap-6 min-h-0 overflow-hidden bg-[#050505]">
-    <div className="flex-1 grid grid-cols-12 gap-4 md:gap-6 relative min-h-0 overflow-y-auto no-scrollbar">
-      {/* Streamlabs Overlay System */}
-      <div className="hidden md:flex absolute top-6 left-6 z-50 pointer-events-none group flex-col gap-4">
+  <div className="flex-1 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden pulse-view-surface p-3 md:p-4 lg:p-6 gap-3 md:gap-4 pb-8">
+    <section className="shrink-0 w-full" aria-label="Episode player">
+      <PodcastMediaPlayer episode={selectedEpisode} />
+      {selectedEpisode ? (
+        <p className="mt-2 px-1 text-[10px] sm:text-xs font-bold uppercase tracking-wide text-white/80 line-clamp-2 lg:hidden">
+          {selectedEpisode.title}
+        </p>
+      ) : null}
+    </section>
+
+    <div className="flex flex-col lg:grid lg:grid-cols-12 gap-3 md:gap-4 lg:gap-6 relative">
+      {/* Streamlabs overlay — desktop only */}
+      <div className="hidden lg:flex absolute top-6 left-6 z-50 pointer-events-none group flex-col gap-4">
          <motion.div 
            initial={{ opacity: 0, x: -20 }}
            animate={{ opacity: 1, x: 0 }}
@@ -1255,15 +1298,15 @@ const PodcastView = ({
          </div>
       </div>
 
-      <div className="col-span-12 lg:col-span-8 glass-bento relative flex flex-col overflow-hidden border-white/5 min-h-[280px] lg:min-h-0">
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent pointer-events-none z-10" />
+      <div className="col-span-12 lg:col-span-5 xl:col-span-6 glass-bento relative flex flex-col overflow-hidden border-white/5 min-h-0">
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent pointer-events-none z-10" />
         <img
           src={episodes[0]?.image || MYCOPOD_COVER_URL}
           alt=""
-          className="absolute inset-0 size-full object-cover opacity-20"
+          className="absolute inset-0 size-full object-cover opacity-15 hidden sm:block"
           referrerPolicy="no-referrer"
         />
-        <div className="relative z-20 flex-1 p-4 md:p-6 lg:p-8 flex flex-col justify-end min-h-[280px]">
+        <div className="relative z-20 p-4 md:p-5 lg:p-6 flex flex-col">
            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
             <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FF5C39] text-white text-[10px] font-black uppercase tracking-tighter min-h-[44px]">
                <Wifi className="w-3 h-3 shrink-0" /> MYCOPOD RSS
@@ -1281,7 +1324,7 @@ const PodcastView = ({
           <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] text-[#FF5C39] mb-2">
             {MYCOPOD_SHOW.subtitle}
           </p>
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tighter mb-2 text-white leading-none">
+          <h1 className="text-xl sm:text-3xl lg:text-4xl font-black tracking-tighter mb-2 text-white leading-none">
             {MYCOPOD_SHOW.title.toUpperCase()}
           </h1>
           <p className="text-sm sm:text-base font-bold text-myco-accent mb-3">{MYCOPOD_SHOW.tagline}</p>
@@ -1308,31 +1351,87 @@ const PodcastView = ({
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-6">
-            <a
-              href={MYCOPOD_SHOW.websiteUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-3 px-6 md:px-10 py-4 md:py-5 min-h-[44px] bg-myco-accent text-black font-black uppercase tracking-widest text-xs sm:text-sm hover:translate-y-[-2px] transition-all shadow-[0_5px_15px_rgba(0,255,136,0.3)] touch-manipulation"
-            >
-              <ExternalLink className="w-5 h-5 shrink-0" /> MycoDAO.com
-            </a>
-            {episodes[0]?.audioUrl ? (
-              <a
-                href={episodes[0].audioUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-3 px-6 py-4 min-h-[44px] bg-white/10 border border-white/20 text-white font-black uppercase tracking-widest text-xs hover:bg-white/15 touch-manipulation"
-              >
-                <Play className="w-5 h-5 fill-current" /> Listen
-              </a>
-            ) : null}
-          </div>
+          <a
+            href={MYCOPOD_SHOW.websiteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 min-h-[44px] w-full sm:w-auto bg-myco-accent text-black font-black uppercase tracking-widest text-xs hover:translate-y-[-2px] transition-all shadow-[0_5px_15px_rgba(0,255,136,0.3)] touch-manipulation"
+          >
+            <ExternalLink className="w-4 h-4 shrink-0" /> MycoDAO.com
+          </a>
         </div>
       </div>
-      <div className="col-span-12 lg:col-span-4 flex flex-col gap-4 md:gap-6 overflow-y-auto no-scrollbar pb-4 lg:pb-0 min-h-0">
-        {/* Streamlabs Pro Tools */}
-        <div className="glass-bento p-6 border-white/5 bg-black/40 flex flex-col gap-4">
+
+      <div className="col-span-12 lg:col-span-7 xl:col-span-6 flex flex-col gap-3 md:gap-4 order-first lg:order-none">
+        <div className="flex-1 glass-bento border-white/5 flex flex-col overflow-hidden bg-black/40 min-h-[200px] lg:min-h-0">
+           <div className="p-3 sm:p-4 border-b border-white/5 flex justify-between items-center bg-[#FF5C39]/5 shrink-0">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-[#FF5C39] flex items-center gap-2">
+                 <Rss className="size-3 shrink-0" />
+                 {episodes.length > 0 ? 'MycoPOD Episodes' : 'Season 1 Guide'}
+              </h3>
+           </div>
+           <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar p-2">
+              {loading ? (
+                  <div className="h-full flex items-center justify-center p-4 min-h-[120px]">
+                      <RefreshCw className="size-5 text-[#FF5C39] animate-spin" />
+                  </div>
+              ) : episodes.length > 0 ? episodes.slice(0, 12).map((ep: PulsePodcastEpisode, i: number) => {
+                const isSelected = selectedEpisode?.id === ep.id;
+                return (
+                <button
+                  type="button"
+                  key={ep.id ?? i}
+                  onClick={() => setSelectedEpisode(ep)}
+                  className={cn(
+                    "group w-full text-left p-3 sm:p-4 transition-all border-b border-white/5 last:border-0 min-h-[44px] touch-manipulation",
+                    isSelected
+                      ? "bg-[#FF5C39]/15 border-l-2 border-l-[#FF5C39]"
+                      : "hover:bg-white/5 border-l-2 border-l-transparent hover:border-l-[#FF5C39]/60"
+                  )}
+                >
+                   <div className="flex justify-between items-start mb-2 gap-2">
+                      <span className="text-[8px] font-bold uppercase tracking-widest text-[#FF5C39] shrink-0">
+                        {ep.mediaKind === 'video' ? 'Video' : 'Audio'}
+                      </span>
+                      <span className="text-[8px] font-bold text-dim">{ep.publishedAt ? new Date(ep.publishedAt).toLocaleDateString() : '—'}</span>
+                   </div>
+                   <h4 className="text-sm font-bold text-white leading-tight mb-2 group-hover:text-[#FF5C39] transition-colors line-clamp-2">{ep.title}</h4>
+                   <span className="text-[10px] font-bold uppercase text-dim tracking-widest flex items-center gap-2">
+                      <Play className="w-2.5 h-2.5 fill-current text-[#FF5C39]" /> {isSelected ? 'Playing' : 'Play'}
+                   </span>
+                </button>
+              )}) : MYCOPOD_SEASON_ONE_GUIDE.map((ep) => (
+                <div
+                  key={ep.number}
+                  className="p-3 border-b border-white/5 last:border-0"
+                >
+                  <div className="flex gap-2 items-start">
+                    <span className="text-[9px] font-black text-[#FF5C39] shrink-0 pt-0.5">E{ep.number}</span>
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-bold text-white leading-snug line-clamp-2">{ep.title}</h4>
+                      <p className="text-[9px] text-dim mt-1">{ep.focus}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+           </div>
+        </div>
+
+        <div className="glass-bento p-4 border-white/5 bg-black/40 flex flex-col gap-3 shrink-0">
+          <h3 className="text-[10px] font-black uppercase tracking-widest text-myco-accent">Hosts</h3>
+          {MYCOPOD_HOST_BIOS.map((host) => (
+            <div key={host.name} className="border-b border-white/5 pb-3 last:border-0 last:pb-0">
+              <p className="text-xs font-bold text-white">{host.name}</p>
+              <p className="text-[9px] font-bold uppercase text-dim tracking-wide mb-1">{host.role}</p>
+              <p className="text-[10px] text-white/60 leading-snug">{host.bio}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="hidden lg:flex col-span-12 xl:col-span-12 flex-col gap-4 min-h-0">
+        {/* Streamlabs — large screens only */}
+        <div className="glass-bento p-6 border-white/5 bg-black/40 flex flex-col gap-4 max-w-md ml-auto">
            <div className="flex justify-between items-center border-b border-white/5 pb-2">
               <h3 className="text-[10px] font-black uppercase text-myco-accent tracking-widest">Streamlabs Config</h3>
               <ExternalLink className="size-3 text-dim" />
@@ -1360,63 +1459,6 @@ const PodcastView = ({
               <button className="flex-1 py-2 bg-white/5 border border-white/10 text-[8px] font-bold uppercase hover:bg-white/10 transition-all text-white relative flex justify-center items-center gap-1">
                  <Bot className="size-3" /> Cloudbot
               </button>
-           </div>
-        </div>
-
-        <div className="glass-bento p-4 border-white/5 bg-black/40 flex flex-col gap-3">
-          <h3 className="text-[10px] font-black uppercase tracking-widest text-myco-accent">Hosts</h3>
-          {MYCOPOD_HOST_BIOS.map((host) => (
-            <div key={host.name} className="border-b border-white/5 pb-3 last:border-0 last:pb-0">
-              <p className="text-xs font-bold text-white">{host.name}</p>
-              <p className="text-[9px] font-bold uppercase text-dim tracking-wide mb-1">{host.role}</p>
-              <p className="text-[10px] text-white/60 leading-snug">{host.bio}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex-1 glass-bento border-white/5 flex flex-col overflow-hidden bg-black/40 min-h-[200px]">
-           <div className="p-4 border-b border-white/5 flex justify-between items-center bg-[#FF5C39]/5">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-[#FF5C39] flex items-center gap-2">
-                 <Rss className="size-3 shrink-0" />
-                 {episodes.length > 0 ? 'MycoPOD Episodes' : 'Season 1 Guide'}
-              </h3>
-           </div>
-           <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar p-2">
-              {loading ? (
-                  <div className="h-full flex items-center justify-center p-4 min-h-[120px]">
-                      <RefreshCw className="size-5 text-[#FF5C39] animate-spin" />
-                  </div>
-              ) : episodes.length > 0 ? episodes.slice(0, 8).map((ep: any, i: number) => (
-                <a
-                  key={ep.id ?? i}
-                  href={ep.audioUrl || ep.embedUrl || MYCOPOD_SHOW.rssUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group block p-4 hover:bg-white/5 transition-all border-b border-white/5 last:border-0 hover:border-l-2 border-l-transparent hover:border-l-[#FF5C39] min-h-[44px] touch-manipulation"
-                >
-                   <div className="flex justify-between items-start mb-2 gap-2">
-                      <span className="text-[8px] font-bold uppercase tracking-widest text-[#FF5C39] shrink-0">Episode</span>
-                      <span className="text-[8px] font-bold text-dim">{ep.publishedAt ? new Date(ep.publishedAt).toLocaleDateString() : '—'}</span>
-                   </div>
-                   <h4 className="text-sm font-bold text-white leading-tight mb-2 group-hover:text-[#FF5C39] transition-colors line-clamp-2">{ep.title}</h4>
-                   <span className="text-[10px] font-bold uppercase text-dim tracking-widest flex items-center gap-2">
-                      <Play className="w-2.5 h-2.5 fill-current text-[#FF5C39]" /> Listen
-                   </span>
-                </a>
-              )) : MYCOPOD_SEASON_ONE_GUIDE.map((ep) => (
-                <div
-                  key={ep.number}
-                  className="p-3 border-b border-white/5 last:border-0"
-                >
-                  <div className="flex gap-2 items-start">
-                    <span className="text-[9px] font-black text-[#FF5C39] shrink-0 pt-0.5">E{ep.number}</span>
-                    <div className="min-w-0">
-                      <h4 className="text-xs font-bold text-white leading-snug line-clamp-2">{ep.title}</h4>
-                      <p className="text-[9px] text-dim mt-1">{ep.focus}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
            </div>
         </div>
       </div>
@@ -2117,7 +2159,29 @@ const IconBySymbol = ({ symbol }: { symbol: string }) => {
 
 // --- MAIN APP ---
 
+function useProducerRoute(): boolean {
+  const [producerMode, setProducerMode] = useState(false);
+
+  useEffect(() => {
+    const sync = () => {
+      const hash = window.location.hash.replace(/^#/, "").toLowerCase();
+      const params = new URLSearchParams(window.location.search);
+      setProducerMode(hash === "producer" || params.get("producer") === "1");
+    };
+    sync();
+    window.addEventListener("hashchange", sync);
+    window.addEventListener("popstate", sync);
+    return () => {
+      window.removeEventListener("hashchange", sync);
+      window.removeEventListener("popstate", sync);
+    };
+  }, []);
+
+  return producerMode;
+}
+
 export default function App() {
+  const producerMode = useProducerRoute();
   const [activeTab, setActiveTab] = useState<PulseTabId>('News');
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [layouts, setLayouts] = useState<any>(initialLayouts);
@@ -2193,6 +2257,20 @@ export default function App() {
     setLayouts(allLayouts);
   };
 
+  if (producerMode) {
+    return (
+      <ProducerDashboard
+        onExit={() => {
+          const url = new URL(window.location.href);
+          url.hash = "";
+          url.searchParams.delete("producer");
+          window.history.replaceState({}, "", url.pathname + url.search);
+          window.dispatchEvent(new HashChangeEvent("hashchange"));
+        }}
+      />
+    );
+  }
+
   const renderContent = () => {
     switch (activeTab) {
       case 'Pulse': return <PulseDashboard aiInsight={aiInsight} layouts={layouts} setLayouts={setLayouts} onLayoutChange={onLayoutChange} setActiveTab={setActiveTab} tickerGroups={tickerGroups} tickers={tickers} mycoSnapshot={mycoSnapshot} chartData={history.length > 0 ? history : EMPTY_CHART_DATA} whales={whales} news={news} episodes={episodes} calendar={calendar} research={research} learnModules={learnModules} fearGreed={fearGreed} configStatus={configStatus} loading={loading} />;
@@ -2201,6 +2279,22 @@ export default function App() {
       case 'Trade': return <TradeView prices={assetTickers} chartData={history.length > 0 ? history : EMPTY_CHART_DATA} whales={whales} />;
       case 'News': return <NewsView />;
       case 'Podcasts': return <PodcastView episodes={episodes} streamStats={streamStats} />;
+      case 'Funding': return (
+        <FundingView
+          mycoSnapshot={mycoSnapshot}
+          onNavigateTab={(tab, focus) => {
+            if (focus) {
+              try {
+                sessionStorage.setItem('pulse-market-focus', focus);
+              } catch {
+                /* ignore */
+              }
+            }
+            setActiveTab(tab);
+          }}
+        />
+      );
+      case 'Research': return <ResearchView research={research} loading={loading} />;
       case 'FungIP': return <FungIPView />;
       case 'Learn': return <LearnView learnModules={learnModules} />;
       case 'MYCO': return <TokenomicsView setActiveTab={setActiveTab} />;
@@ -2210,7 +2304,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex min-h-dvh h-dvh overflow-hidden bg-black relative text-white selection:bg-myco-accent/30 selection:text-white">
+    <div className="flex min-h-dvh h-dvh overflow-hidden pulse-view-surface relative selection:bg-myco-accent/30 selection:text-white">
       <PulseSidebarNav
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -2218,9 +2312,9 @@ export default function App() {
       />
 
       {/* Main Matrix Container */}
-      <main className="flex-1 flex flex-col relative overflow-hidden bg-[#050505] min-w-0 pulse-content-pad">
+      <main className="flex-1 flex flex-col relative overflow-hidden pulse-view-surface min-w-0 pulse-content-pad">
         {/* Top Header Rail */}
-        <header className="shrink-0 border-b border-white/5 flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 lg:px-6 py-2 min-h-14 bg-[#050505]/80 backdrop-blur-xl z-40">
+        <header className="shrink-0 border-b border-[var(--myco-border)] flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 lg:px-6 py-2 min-h-14 bg-[var(--myco-bg)]/90 backdrop-blur-xl z-40">
            <div className="flex items-center gap-2 sm:gap-6 min-w-0 flex-1">
               <PulseMobileBrandPair activeTab={activeTab} setActiveTab={setActiveTab} />
               <button

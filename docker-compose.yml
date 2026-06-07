@@ -1,5 +1,6 @@
 # MycoDAO on Proxmox VM (192.168.0.198) — Blocks at https://blocks.mycodao.com
-# App: `docker compose up -d --build`  (HTTP on host :3004)
+# App: `docker compose up -d --build`  (HTTP on host :3004) — legacy single container
+# Zero-downtime: `scripts/blue-green-deploy.sh` + `docker-compose.blue-green.yml`
 # TLS:  `docker compose --profile tls up -d --build`  (needs deploy/Caddyfile + DNS → this host)
 # Tunnel: `docker compose --profile tunnel up -d --build` — Cloudflare Tunnel to app :3004 (see docs).
 #   Does not change mycodao.com / www (Webflow); `blocks.mycodao.com` in Zero Trust + DNS (pulse redirects).
@@ -19,6 +20,9 @@ services:
       - .env.production
     environment:
       NODE_ENV: production
+    volumes:
+      # BLOCKS producer NAS (host CIFS mount — see scripts/setup_blocks_nas_mount.sh)
+      - ${BLOCKS_NAS_ROOT:-/mnt/nas/mycodao/BLOCKS}:${BLOCKS_NAS_ROOT:-/mnt/nas/mycodao/BLOCKS}:ro
     restart: unless-stopped
     networks:
       - mycodao

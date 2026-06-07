@@ -1,0 +1,30 @@
+# Rendered by scripts/blue-green-deploy.sh — __ACTIVE_SLOT__ → blue | green
+
+server {
+  listen 80 default_server;
+  server_name _;
+
+  location = /healthz {
+    add_header Cache-Control "no-store" always;
+    add_header X-Active-Slot __ACTIVE_SLOT__ always;
+    return 200 "ok\n";
+  }
+
+  set $slot __ACTIVE_SLOT__;
+  set $upstream_host mycodao-__ACTIVE_SLOT__;
+
+  location / {
+    proxy_pass http://$upstream_host:3004;
+
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-Host  $host;
+    proxy_set_header X-Active-Slot     __ACTIVE_SLOT__;
+
+    proxy_next_upstream error timeout http_502 http_503 http_504;
+    proxy_next_upstream_tries 2;
+    proxy_next_upstream_timeout 10s;
+  }
+}

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" role="img" aria-label="Project Lion  lion's mane mushroom">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1208"/>
+      <stop offset="100%" stop-color="#3d2a0f"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#f5c842" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#f5c842" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg)"/>
+  <rect width="800" height="450" fill="url(#glow)"/>
+  <g fill="#f0d080" opacity="0.92">
+    <ellipse cx="400" cy="230" rx="95" ry="70"/>
+    <circle cx="340" cy="200" r="28"/><circle cx="370" cy="175" r="24"/><circle cx="405" cy="165" r="26"/>
+    <circle cx="440" cy="175" r="24"/><circle cx="470" cy="200" r="28"/><circle cx="430" cy="210" r="22"/>
+    <circle cx="385" cy="215" r="20"/><circle cx="415" cy="218" r="20"/>
+  </g>
+  <text x="400" y="380" text-anchor="middle" fill="#f5c842" font-family="system-ui,sans-serif" font-size="28" font-weight="800" letter-spacing="0.12em">PROJECT LION</text>
+</svg>

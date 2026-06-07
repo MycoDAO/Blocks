@@ -1,0 +1,142 @@
+import { useCallback, useEffect, useState } from "react";
+import { pulseApiUrl } from "../lib/apiOrigin";
+import { getStoredProducerKey } from "./useNewsProducer";
+
+export interface BlocksMediaAsset {
+  id: string;
+  relPath: string;
+  fileName: string;
+  category: string;
+  ext: string;
+  sizeBytes: number;
+  modifiedAt: string;
+  kind: "video" | "graphic";
+  serveUrl: string;
+}
+
+export interface BlocksNasStatus {
+  root: string;
+  available: boolean;
+  categories: Record<string, number>;
+  totalAssets: number;
+  lastScanAt: string;
+  error?: string;
+}
+
+export interface ScheduleSlot {
+  id: string;
+  type: string;
+  label: string;
+  videoId?: string;
+  videoUrl?: string;
+  channelId?: string;
+  nasPath?: string;
+  days?: number[];
+  start?: string;
+  end?: string;
+  priority?: number;
+}
+
+export interface NewsChannelSchedule {
+  channel: string;
+  timezone: string;
+  defaultSource: ScheduleSlot;
+  slots: ScheduleSlot[];
+}
+
+export function useProducerNas() {
+  const [assets, setAssets] = useState<BlocksMediaAsset[]>([]);
+  const [nasStatus, setNasStatus] = useState<BlocksNasStatus | null>(null);
+  const [nasConfig, setNasConfig] = useState<Record<string, unknown> | null>(
+    null,
+  );
+  const [schedule, setSchedule] = useState<NewsChannelSchedule | null>(null);
+  const [programNow, setProgramNow] = useState<Record<string, unknown> | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadMedia = useCallback(async () => {
+    const res = await fetch(pulseApiUrl("/api/news/producer/media"), {
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`media ${res.status}`);
+    const data = (await res.json()) as {
+      status: BlocksNasStatus;
+      assets: BlocksMediaAsset[];
+      config: Record<string, unknown>;
+    };
+    setNasStatus(data.status);
+    setAssets(data.assets ?? []);
+    setNasConfig(data.config ?? null);
+  }, []);
+
+  const loadSchedule = useCallback(async () => {
+    const res = await fetch(pulseApiUrl("/api/news/producer/schedule"), {
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`schedule ${res.status}`);
+    const data = (await res.json()) as {
+      schedule: NewsChannelSchedule | null;
+      now: Record<string, unknown>;
+    };
+    setSchedule(data.schedule);
+    setProgramNow(data.now ?? null);
+  }, []);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await Promise.all([loadMedia(), loadSchedule()]);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "nas load failed");
+    } finally {
+      setLoading(false);
+    }
+  }, [loadMedia, loadSchedule]);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+
+  const saveSchedule = useCallback(async (next: NewsChannelSchedule) => {
+    const key = getStoredProducerKey();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (key) headers["x-news-producer-key"] = key;
+
+    const res = await fetch(pulseApiUrl("/api/news/producer/schedule"), {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({ schedule: next }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(
+        (err as { error?: string }).error ?? `schedule patch ${res.status}`,
+      );
+    }
+    const data = (await res.json()) as {
+      schedule: NewsChannelSchedule;
+      now: Record<string, unknown>;
+    };
+    setSchedule(data.schedule);
+    setProgramNow(data.now ?? null);
+    return data;
+  }, []);
+
+  return {
+    assets,
+    nasStatus,
+    nasConfig,
+    schedule,
+    programNow,
+    loading,
+    error,
+    reload,
+    saveSchedule,
+  };
+}
