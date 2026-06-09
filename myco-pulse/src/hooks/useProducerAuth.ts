@@ -1,15 +1,39 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
+import { resolveProducerOAuthRedirect } from "../lib/producerOAuthRedirect";
 import { ensureSupabase, getSupabase } from "../lib/supabase";
 import { pulseApiUrl } from "../lib/apiOrigin";
+
+const PRODUCER_RETURN_KEY = "mycodao.producer.return";
+
+function stripOAuthQueryParams() {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  const hadOAuth =
+    url.searchParams.has("code") ||
+    url.searchParams.has("error") ||
+    url.searchParams.has("error_description");
+  if (!hadOAuth) return;
+  url.searchParams.delete("code");
+  url.searchParams.delete("error");
+  url.searchParams.delete("error_description");
+  url.searchParams.delete("state");
+  if (!url.searchParams.has("producer")) {
+    url.searchParams.set("producer", "1");
+  }
+  window.history.replaceState(
+    {},
+    "",
+    `${url.pathname}?${url.searchParams.toString()}${url.hash}`,
+  );
+}
 
 export function useProducerAuth() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
-  const [sendingLink, setSendingLink] = useState(false);
+  const [signingIn, setSigningIn] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -30,10 +54,19 @@ export function useProducerAuth() {
       if (cancelled) return;
       setSession(data.session);
       setLoading(false);
+      stripOAuthQueryParams();
 
-      const { data: sub } = client.auth.onAuthStateChange((_event, next) => {
+      const { data: sub } = client.auth.onAuthStateChange((event, next) => {
         setSession(next);
         setLoading(false);
+        if (event === "SIGNED_IN") {
+          stripOAuthQueryParams();
+          setSigningIn(false);
+          setStatusMessage(null);
+        }
+        if (event === "SIGNED_OUT") {
+          setSigningIn(false);
+        }
       });
       unsubscribe = () => sub.subscription.unsubscribe();
     })();
@@ -48,41 +81,42 @@ export function useProducerAuth() {
   const userEmail = session?.user?.email ?? null;
   const isAuthenticated = Boolean(accessToken);
 
-  const signInWithMagicLink = useCallback(async () => {
+  const signInWithGoogle = useCallback(async () => {
     const client = getSupabase() ?? (await ensureSupabase());
-    const trimmed = email.trim().toLowerCase();
     if (!client) {
       setError("Supabase is not configured");
       return;
     }
-    if (!trimmed) {
-      setError("Enter your authorized email");
-      return;
-    }
 
-    setSendingLink(true);
+    setSigningIn(true);
     setError(null);
     setStatusMessage(null);
     try {
-      const redirectTo =
-        typeof window !== "undefined" ? window.location.href : undefined;
-      const { error: signInError } = await client.auth.signInWithOtp({
-        email: trimmed,
+      const redirectTo = await resolveProducerOAuthRedirect();
+      if (
+        redirectTo.includes("mycosoft.com") &&
+        !redirectTo.includes("mycodao.com")
+      ) {
+        throw new Error(
+          "Producer OAuth redirect misconfigured — must use blocks.mycodao.com, not mycosoft.com",
+        );
+      }
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(PRODUCER_RETURN_KEY, redirectTo);
+      }
+      const { error: signInError } = await client.auth.signInWithOAuth({
+        provider: "google",
         options: {
-          emailRedirectTo: redirectTo,
-          shouldCreateUser: true,
+          redirectTo,
+          queryParams: { prompt: "select_account" },
         },
       });
       if (signInError) throw signInError;
-      setStatusMessage(
-        `Magic link sent to ${trimmed}. Open it on this device, then return here.`,
-      );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Sign-in failed");
-    } finally {
-      setSendingLink(false);
+      setSigningIn(false);
+      setError(e instanceof Error ? e.message : "Google sign-in failed");
     }
-  }, [email]);
+  }, []);
 
   const signOut = useCallback(async () => {
     const client = getSupabase() ?? (await ensureSupabase());
@@ -90,13 +124,19 @@ export function useProducerAuth() {
     setSession(null);
     setStatusMessage(null);
     setError(null);
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem(PRODUCER_RETURN_KEY);
+    }
   }, []);
 
   const verifySession = useCallback(async (): Promise<
     { ok: true } | { ok: false; message: string }
   > => {
     if (!accessToken) {
-      return { ok: false, message: "Sign in with an authorized email first" };
+      return {
+        ok: false,
+        message: "Sign in with an authorized Google account first",
+      };
     }
 
     const res = await fetch(pulseApiUrl("/api/news/producer/verify"), {
@@ -112,7 +152,7 @@ export function useProducerAuth() {
         ok: false,
         message:
           body.error ??
-          "Not authorized — use morgan@mycosoft.org, morgan@mycodao.com, abelardo@mycosoft.org, or abelardo@mycodao.com",
+          "Not authorized — sign in with an approved producer Google account",
       };
     }
     if (res.status === 503) {
@@ -127,15 +167,13 @@ export function useProducerAuth() {
   return {
     session,
     loading,
-    email,
-    setEmail,
     statusMessage,
     error,
-    sendingLink,
+    signingIn,
     accessToken,
     userEmail,
     isAuthenticated,
-    signInWithMagicLink,
+    signInWithGoogle,
     signOut,
     verifySession,
   };

@@ -77,7 +77,7 @@ export function producerAuthErrorMessage(
 ): string {
   switch (result.reason) {
     case "missing_token":
-      return "Sign in with an authorized Mycosoft email to control the feed";
+      return "Sign in with Google (authorized producer account) to control the feed";
     case "invalid_token":
       return "Session expired — sign in again";
     case "not_allowlisted":

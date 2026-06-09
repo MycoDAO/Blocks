@@ -20,6 +20,7 @@ KEYS = (
     "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     "SUPABASE_URL",
     "SUPABASE_ANON_KEY",
+    "PRODUCER_OAUTH_REDIRECT_URL",
 )
 
 
@@ -60,11 +61,17 @@ def resolve_supabase() -> dict[str, str]:
     anon = merged.get("NEXT_PUBLIC_SUPABASE_ANON_KEY") or merged.get("SUPABASE_ANON_KEY", "")
     if not url or not anon:
         raise SystemExit("Missing NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local")
+    producer_redirect = (
+        merged.get("PRODUCER_OAUTH_REDIRECT_URL")
+        or merged.get("NEXT_PUBLIC_PRODUCER_OAUTH_REDIRECT")
+        or "https://blocks.mycodao.com/blocks/?producer=1"
+    ).strip()
     return {
         "NEXT_PUBLIC_SUPABASE_URL": url,
         "NEXT_PUBLIC_SUPABASE_ANON_KEY": anon,
         "SUPABASE_URL": url,
         "SUPABASE_ANON_KEY": anon,
+        "PRODUCER_OAUTH_REDIRECT_URL": producer_redirect,
     }
 
 
