@@ -36,7 +36,9 @@ services:
       retries: 3
       start_period: 5s
     networks:
-      - mycodao
+      mycodao:
+        aliases:
+          - mycodao
     labels:
       - "com.mycodao.service=blocks-proxy"
       - "com.mycodao.critical=true"
