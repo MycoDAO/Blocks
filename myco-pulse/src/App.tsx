@@ -118,6 +118,7 @@ import { PulseBottomNav, PulseSidebarNav, PulseMobileBrandPair, type PulseTabId 
 import { handleMobileNewsPointerDown } from './lib/mobileNewsGestureUnlock';
 import { FundingView } from './components/FundingView';
 import { ResearchView } from './components/ResearchView';
+import { TissueView } from './components/TissueView';
 import { useMediaQuery } from './hooks/useMediaQuery';
 
 // Handle RGL ESM/CJS interop
@@ -2198,6 +2199,7 @@ export default function App() {
       );
       case 'Research': return <ResearchView research={research} loading={loading} />;
       case 'FungIP': return <FungIPView />;
+      case 'Tissue': return <TissueView />;
       case 'Learn': return <LearnView learnModules={learnModules} />;
       case 'MYCO': return <MycoTerminalView setActiveTab={setActiveTab} />;
       case 'Settings': return <SettingsView isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />;

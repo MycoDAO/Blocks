@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Mic2,
   Settings,
+  Microscope,
   Terminal,
   TrendingUp,
   Users,
@@ -28,6 +29,7 @@ export type PulseTabId =
   | "Funding"
   | "Research"
   | "FungIP"
+  | "Tissue"
   | "Learn"
   | "MYCO"
   | "Settings";
@@ -47,6 +49,7 @@ export const PULSE_TABS: {
   { id: "Markets", label: "Markets", shortLabel: "Mkt", icon: TrendingUp },
   { id: "Trade", label: "Trade", shortLabel: "Trade", icon: BarChart3 },
   { id: "FungIP", label: "FungIP", shortLabel: "FungIP", icon: Terminal },
+  { id: "Tissue", label: "Tissue", shortLabel: "Tissue", icon: Microscope },
   { id: "Learn", label: "Learn", shortLabel: "Learn", icon: BookOpen },
   { id: "MYCO", label: "MYCO", shortLabel: "MYCO", icon: Coins },
 ];

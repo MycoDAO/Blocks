@@ -12,6 +12,7 @@ export const BLOCKS_MEDIA_CATEGORIES = [
   "live-streams",
   "graphics",
   "bumpers",
+  "tissue",
 ] as const;
 
 export type BlocksMediaCategory = (typeof BLOCKS_MEDIA_CATEGORIES)[number];
@@ -82,7 +83,7 @@ function assetId(relPath: string): string {
   return createHash("sha1").update(relPath).digest("hex").slice(0, 12);
 }
 
-function buildServeUrl(relPath: string): string {
+export function buildServeUrl(relPath: string): string {
   const base =
     process.env.BLOCKS_MEDIA_PUBLIC_BASE?.trim() ||
     process.env.NEXT_PUBLIC_PULSE_API_ORIGIN?.trim() ||
@@ -241,6 +242,75 @@ export function blocksNasConfigPublic() {
     folders: BLOCKS_MEDIA_CATEGORIES,
     root: blocksNasRoot(),
   };
+}
+
+/** Scan BLOCKS/tissue/<sampleId>/ for curator media picker. */
+export function scanTissueNasAssets(sampleFolder?: string): BlocksMediaAsset[] {
+  const root = blocksNasRoot();
+  const tissueRoot = path.join(root, "tissue");
+  if (!fs.existsSync(tissueRoot)) return [];
+
+  const normalizedFolder = sampleFolder
+    ?.trim()
+    .replace(/\\/g, "/")
+    .replace(/^\/+/, "")
+    .replace(/^tissue\//i, "");
+
+  const targetDir = normalizedFolder
+    ? path.join(tissueRoot, normalizedFolder)
+    : tissueRoot;
+
+  if (!fs.existsSync(targetDir)) return [];
+
+  const out: BlocksMediaAsset[] = [];
+
+  function walk(current: string, depth: number) {
+    if (depth > 4) return;
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(current, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const ent of entries) {
+      if (ent.name.startsWith(".")) continue;
+      const abs = path.join(current, ent.name);
+      if (ent.isDirectory()) {
+        walk(abs, depth + 1);
+        continue;
+      }
+      if (!ent.isFile()) continue;
+
+      const ext = path.extname(ent.name).toLowerCase();
+      const isVideo = VIDEO_EXT.has(ext);
+      const isGraphic = GRAPHIC_EXT.has(ext);
+      if (!isVideo && !isGraphic) continue;
+
+      let stat: fs.Stats;
+      try {
+        stat = fs.statSync(abs);
+      } catch {
+        continue;
+      }
+
+      const relPath = path.relative(root, abs).split(path.sep).join("/");
+      out.push({
+        id: assetId(relPath),
+        relPath,
+        fileName: ent.name,
+        category: "tissue",
+        ext,
+        sizeBytes: stat.size,
+        modifiedAt: stat.mtime.toISOString(),
+        kind: isVideo ? "video" : "graphic",
+        serveUrl: buildServeUrl(relPath),
+      });
+    }
+  }
+
+  walk(targetDir, 0);
+  out.sort((a, b) => a.fileName.localeCompare(b.fileName));
+  return out;
 }
 
 export function mimeForBlocksFile(filePath: string): string {
